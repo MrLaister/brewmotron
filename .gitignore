@@ -71,3 +71,5 @@ var/
 wheels/
 *.egg
 
+# Claude code
+.claude/
