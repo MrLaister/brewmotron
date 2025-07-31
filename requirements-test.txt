@@ -1,0 +1,43 @@
+# Testing Infrastructure Dependencies
+# Core testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+pytest-xdist>=3.3.0
+pytest-timeout>=2.1.0
+
+# Coverage and reporting
+coverage>=7.2.0
+coverage[toml]>=7.2.0
+
+# Mocking and test utilities
+mock>=5.1.0
+factory-boy>=3.3.0
+freezegun>=1.2.0
+responses>=0.23.0
+
+# Async testing utilities
+pytest-asyncio>=0.21.0
+asynctest>=0.13.0
+
+# Hardware simulation dependencies
+fake-rpi>=0.7.0
+
+# CraftBeerPi4 testing dependencies (when available)
+# cbpi4>=4.0.0  # Uncomment when testing against actual CBPI
+
+# Development and quality tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.0.0
+isort>=5.12.0
+
+# Performance and profiling
+memory-profiler>=0.60.0
+py-spy>=0.3.0
+
+# Additional utilities
+pydantic>=2.0.0  # For configuration validation
+pyyaml>=6.0.0    # For YAML configuration handling
+click>=8.0.0     # For CLI test utilities
