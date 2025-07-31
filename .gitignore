@@ -73,3 +73,6 @@ wheels/
 
 # Claude code
 .claude/
+
+# Git Commit script
+git_commit.sh

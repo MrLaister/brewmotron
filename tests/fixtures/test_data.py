@@ -100,6 +100,12 @@ class GPIOActorConfigFactory(PluginConfigFactory):
         'LinkedActor': None
     })
 
+class ExtensionConfigFactory(PluginConfigFactory):
+    """Factory for Extension plugin configurations."""
+    
+    type = 'Extension'
+    props = LazyAttribute(lambda obj: {})
+
 class I2CSensorConfigFactory(PluginConfigFactory):
     """Factory for I2C sensor configurations."""
     

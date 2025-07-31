@@ -318,8 +318,13 @@ class MockCBPiSensorBase:
     
     async def on_stop(self):
         """Called when sensor stops."""
-        if self._task:
+        if self._task and not self._task.done():
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
     
     async def run(self):
         """Main sensor loop."""
@@ -348,8 +353,13 @@ class MockCBPiExtensionBase:
     
     async def on_stop(self):
         """Called when extension stops."""
-        if self._task:
+        if self._task and not self._task.done():
             self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+            self._task = None
     
     async def run(self):
         """Main extension loop."""
@@ -418,9 +428,22 @@ class PluginTestHarness:
         if plugin_id in self.plugins:
             plugin_instance = self.plugins[plugin_id]
             
-            # Stop plugin
+            # Stop plugin with timeout to prevent hanging
             if hasattr(plugin_instance, 'on_stop'):
-                await plugin_instance.on_stop()
+                try:
+                    async with asyncio.timeout(2.0):
+                        await plugin_instance.on_stop()
+                except asyncio.TimeoutError:
+                    logger.warning(f"Timeout stopping plugin {plugin_id}")
+            
+            # Cancel any background tasks
+            if hasattr(plugin_instance, '_task') and plugin_instance._task:
+                if not plugin_instance._task.done():
+                    plugin_instance._task.cancel()
+                    try:
+                        await plugin_instance._task
+                    except asyncio.CancelledError:
+                        pass
             
             # Remove from registry
             del self.plugins[plugin_id]
@@ -428,10 +451,33 @@ class PluginTestHarness:
                 del self.cbpi._plugins[plugin_id]
     
     async def cleanup(self) -> None:
-        """Clean up all loaded plugins."""
+        """Clean up all loaded plugins and cancel all pending tasks."""
+        # First, unload all plugins
         plugin_ids = list(self.plugins.keys())
         for plugin_id in plugin_ids:
             await self.unload_plugin(plugin_id)
+        
+        # Cancel any remaining tasks
+        current_task = asyncio.current_task()
+        all_tasks = [task for task in asyncio.all_tasks() if task != current_task and not task.done()]
+        
+        if all_tasks:
+            logger.debug(f"Cancelling {len(all_tasks)} remaining tasks")
+            for task in all_tasks:
+                task.cancel()
+            
+            # Wait for tasks to complete cancellation with timeout
+            try:
+                async with asyncio.timeout(3.0):
+                    await asyncio.gather(*all_tasks, return_exceptions=True)
+            except asyncio.TimeoutError:
+                logger.warning("Timeout waiting for task cancellation")
+        
+        # Clear any remaining state
+        self.plugins.clear()
+        self.cbpi._plugins.clear()
+        if hasattr(self.cbpi, '_extensions'):
+            self.cbpi._extensions.clear()
 
 # =============================================================================
 # Mock Decorators and Utilities

@@ -246,6 +246,7 @@ class TestLCDisplay:
                 self.communication_errors = 0
                 self.running = False
                 self.task = None
+                self.communication_completed = False
             
             async def on_start(self):
                 self.running = True
@@ -258,25 +259,26 @@ class TestLCDisplay:
             
             async def _test_communication(self):
                 """Test various LCD operations."""
-                while self.running:
-                    try:
-                        # Test basic operations
-                        self.lcd.clear()
-                        self.lcd.write_string("Test Line 1", 0, 0)
-                        self.lcd.write_string("Test Line 2", 1, 0)
-                        
-                        # Test cursor operations
-                        self.lcd.cursor_mode(True, False)
-                        self.lcd.cursor_mode(False, False)
-                        
-                        # Test backlight
-                        self.lcd.backlight(True)
-                        self.lcd.backlight(False)
-                        
-                    except Exception as e:
-                        self.communication_errors += 1
+                try:
+                    # Test basic operations
+                    self.lcd.clear()
+                    self.lcd.write_string("Test Line 1", 0, 0)
+                    self.lcd.write_string("Test Line 2", 1, 0)
                     
-                    await asyncio.sleep(0.1)
+                    # Test cursor operations
+                    self.lcd.cursor_mode(True, False)
+                    self.lcd.cursor_mode(False, False)
+                    
+                    # Test backlight
+                    self.lcd.backlight(True)
+                    self.lcd.backlight(False)
+                    
+                    self.communication_completed = True
+                    
+                except Exception as e:
+                    self.communication_errors += 1
+                    
+                self.running = False
         
         plugin = await plugin_harness.load_plugin(
             MockLCDisplay,
@@ -284,18 +286,27 @@ class TestLCDisplay:
             {}
         )
         
-        # Wait for communication tests
-        await asyncio.sleep(0.3)
+        # Start the plugin to trigger communication test
+        await plugin.on_start()
         
-        # Should handle communication gracefully
-        assert plugin.running == True
+        # Wait for communication tests to complete
+        if plugin.task:
+            try:
+                await asyncio.wait_for(plugin.task, timeout=1.0)
+            except asyncio.TimeoutError:
+                pass
         
-        # Check LCD state
-        lcd_content = plugin.lcd.get_display_content()
-        assert "Test Line" in lcd_content
+        # Stop the plugin
+        await plugin.on_stop()
         
-        # Should have minimal communication errors with mock
+        # Check communication completed successfully
+        assert plugin.communication_completed == True
         assert plugin.communication_errors == 0
+        
+        # Check LCD state - look for any test content
+        lcd_content = plugin.lcd.get_display_content()
+        content_str = ' '.join(lcd_content)
+        assert "Test Line" in content_str
     
     @pytest.mark.asyncio
     async def test_different_lcd_addresses(self, plugin_harness):
@@ -329,14 +340,17 @@ class TestLCDisplay:
             display = await plugin_harness.load_plugin(
                 MockLCDisplay,
                 config.id,
-                {}
+                config.props  # Pass props to ensure config access
             )
             displays.append(display)
         
         # Verify each display has correct address
         for i, display in enumerate(displays):
+            # Start the plugin to trigger config reading
+            await display.on_start()
             expected_addr = addresses[i]
             assert display.lcd_address == expected_addr
+            await display.on_stop()
     
     @pytest.mark.asyncio
     async def test_display_refresh_rate_configuration(self, plugin_harness):
@@ -378,10 +392,13 @@ class TestLCDisplay:
             display = await plugin_harness.load_plugin(
                 MockLCDisplay,
                 config.id,
-                {}
+                config.props  # Pass props to ensure config access
             )
             
+            # Start the plugin to trigger config reading
+            await display.on_start()
             assert display.refresh_rate == rate
+            await display.on_stop()
             
             # Clean up
             await plugin_harness.unload_plugin(config.id)
@@ -515,17 +532,19 @@ class TestLCDisplayEdgeCases:
             
             async def _connection_loop(self):
                 """Attempt to maintain LCD connection."""
-                while self.running:
+                while self.running and self.connection_attempts < 10:  # Limit attempts for testing
                     if self.lcd is None:
                         self.connection_attempts += 1
                         try:
                             # Simulate connection attempt
                             if self.connection_attempts > 3:
-                                self.lcd = MockLCDisplay(address=0x27, cols=20, rows=4)
+                                from tests.fixtures.hardware_mocks import MockLCDisplay as HardwareMockLCDisplay
+                                self.lcd = HardwareMockLCDisplay(address=0x27, cols=20, rows=4)
+                                break  # Exit loop once connected
                         except Exception:
                             pass
                     
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(0.1)  # Faster loop for testing
         
         plugin = await plugin_harness.load_plugin(
             MockLCDisplay,
@@ -533,8 +552,14 @@ class TestLCDisplayEdgeCases:
             {}
         )
         
+        # Start the plugin
+        await plugin.on_start()
+        
         # Wait for connection attempts
-        await asyncio.sleep(2.0)
+        await asyncio.sleep(1.0)
+        
+        # Stop the plugin
+        await plugin.on_stop()
         
         # Should eventually establish connection
         assert plugin.connection_attempts >= 3
