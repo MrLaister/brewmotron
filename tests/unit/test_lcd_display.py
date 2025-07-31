@@ -149,7 +149,7 @@ class TestLCDisplay:
         plugin = await plugin_harness.load_plugin(
             MockLCDisplay,
             display_config.id,
-            {}
+            display_config.props
         )
         
         assert plugin.running == True

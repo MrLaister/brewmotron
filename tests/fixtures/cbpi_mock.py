@@ -38,7 +38,7 @@ class MockCBPiConfig:
             'INFLUXDB_MEASUREMENT': 'cbpi4'
         }
     
-    async def get(self, key: str, default: Any = None) -> Any:
+    def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value."""
         return self._config_data.get(key, default)
     
@@ -68,6 +68,8 @@ class MockCBPiActor:
     
     async def get_state(self, actor_id: str) -> bool:
         """Get actor state (on/off)."""
+        if actor_id not in self._actor_states:
+            raise KeyError(f"Actor '{actor_id}' not found")
         return self._actor_states.get(actor_id, False)
     
     async def set_state(self, actor_id: str, state: bool) -> None:
@@ -371,6 +373,10 @@ class PluginTestHarness:
         """Load and initialize a plugin for testing."""
         props = props or {}
         
+        # Add props to config so plugin can access them
+        for key, value in props.items():
+            self.cbpi.config._config_data[key] = value
+        
         # Create plugin instance
         # Check for plugin type hint first
         if hasattr(plugin_class, '_plugin_type'):
@@ -383,11 +389,14 @@ class PluginTestHarness:
             # Determine plugin type based on base class
             base_names = [base.__name__ for base in plugin_class.__bases__]
             
+            # Also check for classes that contain 'Extension' in their name (for mock classes)
+            has_extension_base = any('CBPiExtension' in name or 'Extension' in name for name in base_names)
+            
             if 'CBPiActor' in base_names:
                 plugin_instance = plugin_class(self.cbpi, plugin_id, props)
             elif 'CBPiSensor' in base_names:
                 plugin_instance = plugin_class(self.cbpi, plugin_id, props)
-            elif 'CBPiExtension' in base_names:
+            elif 'CBPiExtension' in base_names or has_extension_base:
                 plugin_instance = plugin_class(self.cbpi)
             else:
                 plugin_instance = plugin_class(self.cbpi, plugin_id, props)

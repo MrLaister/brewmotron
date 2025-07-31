@@ -462,6 +462,49 @@ class MockSMBus:
     def get_transaction_count(self) -> int:
         """Get total I2C transaction count (for testing)."""
         return self._transaction_count
+    
+    def simulate_device_failure(self, addr: int, failure_type: str) -> None:
+        """Simulate device failure for testing error handling."""
+        if addr not in self._devices:
+            self._devices[addr] = I2CDeviceState(address=addr)
+        
+        device = self._devices[addr]
+        
+        if failure_type == "connection_lost":
+            device.connected = False
+            logger.debug(f"Simulated connection failure for device 0x{addr:02X}")
+        elif failure_type == "register_corruption":
+            # Corrupt some registers
+            for reg in list(device.registers.keys())[:2]:
+                device.registers[reg] = 0xFFFF  # Invalid data
+            logger.debug(f"Simulated register corruption for device 0x{addr:02X}")
+        elif failure_type == "slow_response":
+            device.response_delay = 2.0  # 2 second delay
+            logger.debug(f"Simulated slow response for device 0x{addr:02X}")
+        else:
+            logger.warning(f"Unknown failure type: {failure_type}")
+    
+    def restore_device(self, addr: int) -> None:
+        """Restore device to normal operation."""
+        if addr in self._devices:
+            device = self._devices[addr]
+            device.connected = True
+            device.response_delay = 0.001
+            # Restore default registers based on device type
+            if 0x70 <= addr <= 0x76:  # HT16K33 displays
+                device.registers = {
+                    0x21: 0x01,  # System setup
+                    0xEF: 0x00,  # Display setup
+                    0x81: 0x01,  # Brightness
+                }
+            elif addr == 0x48:  # ADS1115
+                device.registers = {
+                    0x00: 0x0000,  # Conversion register
+                    0x01: 0x0583,  # Config register
+                    0x02: 0x8000,  # Lo_thresh register
+                    0x03: 0x7FFF,  # Hi_thresh register
+                }
+            logger.debug(f"Restored device 0x{addr:02X} to normal operation")
 
 # =============================================================================
 # Temperature Sensor Simulation
