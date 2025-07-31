@@ -1,0 +1,2 @@
+include cbpi4-i2cTempSensor/config.yaml
+recursive-include cbpi4-i2cTempSensor/static *
