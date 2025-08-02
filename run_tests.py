@@ -10,10 +10,10 @@ Convenient script for running different types of tests with appropriate configur
 Provides easy access to various testing scenarios and reporting options.
 """
 
-import os
-import sys
 import argparse
+import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import List, Optional
 

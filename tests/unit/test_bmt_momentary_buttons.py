@@ -5,16 +5,18 @@ Tests the BMT Momentary Button functionality with comprehensive hardware mocking
 and edge case handling for brewing system control (+10, +1, Select, -1, -10).
 """
 
+import asyncio
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock, PropertyMock
-from datetime import datetime
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
-from tests.fixtures.hardware_mocks import MockRPiGPIO, HardwareTestHarness
-from tests.fixtures.test_data import PluginConfigFactory, GPIOActorConfigFactory
+from tests.fixtures.hardware_mocks import HardwareTestHarness, MockRPiGPIO
+from tests.fixtures.test_data import (GPIOActorConfigFactory,
+                                      PluginConfigFactory)
 
 # Mark all tests in this module as hardware tests
 pytestmark = pytest.mark.hardware

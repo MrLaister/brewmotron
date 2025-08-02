@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 
 from cbpi.api import *
 
-
 logger = logging.getLogger(__name__)
 
 try:

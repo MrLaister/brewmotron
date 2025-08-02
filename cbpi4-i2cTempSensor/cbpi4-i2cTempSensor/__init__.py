@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
-import os
-
-# from aiohttp import web
-import logging
-
 # from unittest.mock import MagicMock, patch
 import asyncio
-import RPi.GPIO as GPIO
-import busio
-import adafruit_ads1x15.ads1115 as ADS
-from adafruit_ads1x15.analog_in import AnalogIn
+# from aiohttp import web
+import logging
 import math
+import os
 
-# import random
-from cbpi.api import *
-
+import adafruit_ads1x15.ads1115 as ADS
+import busio
+import RPi.GPIO as GPIO
+from adafruit_ads1x15.analog_in import AnalogIn
 # from cbpi.api.base import CBPiBase
 # from cbpi.api.config import ConfigType
-from cbpi.api import parameters, CBPiSensor
+# import random
+from cbpi.api import *
+from cbpi.api import CBPiSensor, parameters
 from cbpi.api.dataclasses import DataType
 
 # TODO make the i2c gather the data. Get the right formula to turn it into temperature, and create a function to do the conversion

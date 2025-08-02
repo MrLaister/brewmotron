@@ -7,12 +7,13 @@ configurations, sensor readings, brewing recipes, and hardware states.
 
 import random
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, field
-from factory import Factory, Faker, SubFactory, LazyAttribute, Sequence
-from factory.fuzzy import FuzzyChoice, FuzzyFloat, FuzzyInteger, FuzzyDateTime
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional, Union
+
 import factory
+from factory import Factory, Faker, LazyAttribute, Sequence, SubFactory
+from factory.fuzzy import FuzzyChoice, FuzzyDateTime, FuzzyFloat, FuzzyInteger
 
 # =============================================================================
 # Data Classes for Test Data

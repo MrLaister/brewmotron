@@ -7,13 +7,13 @@ that interface with GPIO, I2C, and other hardware components.
 
 import asyncio
 import logging
-import time
 import random
-from typing import Dict, List, Optional, Callable, Any, Union
-from unittest.mock import MagicMock, PropertyMock
+import threading
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-import threading
+from typing import Any, Callable, Dict, List, Optional, Union
+from unittest.mock import MagicMock, PropertyMock
 
 logger = logging.getLogger(__name__)
 

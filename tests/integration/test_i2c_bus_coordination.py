@@ -7,19 +7,16 @@ bus arbitration, error handling, and data integrity across multiple devices.
 
 import asyncio
 import threading
-from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytest_asyncio
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
-from tests.fixtures.hardware_mocks import (
-    MockSMBus,
-    HardwareTestHarness,
-    Mock7SegmentDisplay,
-)
+from tests.fixtures.hardware_mocks import (HardwareTestHarness,
+                                           Mock7SegmentDisplay, MockSMBus)
 from tests.fixtures.test_data import PluginConfigFactory
 
 # Mark all tests in this module as integration tests

@@ -6,22 +6,21 @@ framework to both LCD and 7-segment displays, ensuring consistent display
 updates and proper temperature management.
 """
 
+import asyncio
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from unittest.mock import patch, AsyncMock
-from datetime import datetime, timedelta
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness, MockCBPiSensorBase
-from tests.fixtures.hardware_mocks import (
-    MockSMBus,
-    MockTemperatureSensor,
-    Mock7SegmentDisplay,
-    MockLCDisplay,
-    create_brewmotron_hardware_setup,
-)
-from tests.fixtures.test_data import PluginConfigFactory, I2CSensorConfigFactory
+from tests.fixtures.cbpi_mock import (MockCBPi, MockCBPiSensorBase,
+                                      PluginTestHarness)
+from tests.fixtures.hardware_mocks import (Mock7SegmentDisplay, MockLCDisplay,
+                                           MockSMBus, MockTemperatureSensor,
+                                           create_brewmotron_hardware_setup)
+from tests.fixtures.test_data import (I2CSensorConfigFactory,
+                                      PluginConfigFactory)
 
 # Mark all tests in this module as integration tests
 pytestmark = pytest.mark.integration

@@ -6,27 +6,20 @@ plugins including temperature control, display updates, mode switching, and
 actor coordination throughout different brewing phases.
 """
 
-import pytest
-import pytest_asyncio
 import asyncio
-from unittest.mock import patch, AsyncMock, MagicMock
 from datetime import datetime, timedelta
 from enum import Enum
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+import pytest_asyncio
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import (
-    MockCBPi,
-    PluginTestHarness,
-    MockCBPiActorBase,
-    MockCBPiSensorBase,
-)
-from tests.fixtures.hardware_mocks import (
-    MockRPiGPIO,
-    MockTemperatureSensor,
-    Mock7SegmentDisplay,
-    MockLCDisplay,
-    create_brewmotron_hardware_setup,
-)
+from tests.fixtures.cbpi_mock import (MockCBPi, MockCBPiActorBase,
+                                      MockCBPiSensorBase, PluginTestHarness)
+from tests.fixtures.hardware_mocks import (Mock7SegmentDisplay, MockLCDisplay,
+                                           MockRPiGPIO, MockTemperatureSensor,
+                                           create_brewmotron_hardware_setup)
 from tests.fixtures.test_data import PluginConfigFactory
 
 # Mark all tests in this module as integration tests

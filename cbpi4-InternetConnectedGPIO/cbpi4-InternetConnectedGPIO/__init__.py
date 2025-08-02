@@ -1,10 +1,9 @@
-import os
 import asyncio
 import logging
+import os
 from unittest.mock import MagicMock, patch
 
 from cbpi.api import *
-
 
 logger = logging.getLogger(__name__)
 

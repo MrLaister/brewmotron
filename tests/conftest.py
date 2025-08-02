@@ -10,8 +10,8 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Dict, Any, Generator, AsyncGenerator
-from unittest.mock import MagicMock, patch, AsyncMock
+from typing import Any, AsyncGenerator, Dict, Generator
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest import FixtureRequest
@@ -416,8 +416,9 @@ def inverted_logic(request):
 @pytest.fixture
 def performance_monitor():
     """Monitor performance metrics during test execution."""
-    import psutil
     import time
+
+    import psutil
 
     class PerformanceMonitor:
         def __init__(self):

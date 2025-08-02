@@ -5,19 +5,17 @@ Tests the 7-segment display extension functionality with comprehensive I2C mocki
 and display simulation.
 """
 
+import asyncio
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
-from datetime import datetime
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
-from tests.fixtures.hardware_mocks import (
-    MockSMBus,
-    Mock7SegmentDisplay,
-    HardwareTestHarness,
-)
+from tests.fixtures.hardware_mocks import (HardwareTestHarness,
+                                           Mock7SegmentDisplay, MockSMBus)
 from tests.fixtures.test_data import PluginConfigFactory
 
 # Mark all tests in this module as hardware tests

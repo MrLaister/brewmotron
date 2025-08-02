@@ -5,16 +5,18 @@ Tests the BMT Key mode switching functionality with comprehensive hardware mocki
 and edge case handling for brewing system modes (Off, Clean, Brew, Ferment).
 """
 
+import asyncio
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock, PropertyMock
-from datetime import datetime
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
-from tests.fixtures.hardware_mocks import MockRPiGPIO, HardwareTestHarness
-from tests.fixtures.test_data import PluginConfigFactory, ExtensionConfigFactory
+from tests.fixtures.hardware_mocks import HardwareTestHarness, MockRPiGPIO
+from tests.fixtures.test_data import (ExtensionConfigFactory,
+                                      PluginConfigFactory)
 
 # Mark all tests in this module as hardware tests
 pytestmark = pytest.mark.hardware

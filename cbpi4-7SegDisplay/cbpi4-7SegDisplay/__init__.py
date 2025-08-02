@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
-import time
-import socket
-import fcntl
-import struct
-import logging
 import asyncio
+import fcntl
+import logging
+import socket
+import struct
+import time
+from time import strftime
 
-# 7Seg Required
-from smbus import SMBus
 import busio
 from adafruit_ht16k33 import segments
+from cbpi.api import *
+from cbpi.api.config import ConfigType
+# 7Seg Required
+from smbus import SMBus
 
 # from RPLCD.i2c import CharLCD
 
-from time import strftime
-from cbpi.api import *
-from cbpi.api.config import ConfigType
 
 # import RPi.GPIO as GPIO
 # GPIO.setmode(GPIO.BCM)

@@ -1,5 +1,6 @@
-from setuptools import setup, find_packages
 from os import path
+
+from setuptools import find_packages, setup
 
 # read the contents of your README file
 this_directory = path.abspath(path.dirname(__file__))

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
-import time
-import socket
-import fcntl
-import struct
-import logging
 import asyncio
-from RPLCD.i2c import CharLCD
+import fcntl
+import logging
+import socket
+import struct
+import time
 from time import strftime
+
 from cbpi.api import *
 from cbpi.api.config import ConfigType
+from RPLCD.i2c import CharLCD
 
 # from cbpi.api.dataclasses import NotificationAction, NotificationType
 

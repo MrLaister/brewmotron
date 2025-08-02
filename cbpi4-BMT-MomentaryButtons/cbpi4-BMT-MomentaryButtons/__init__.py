@@ -3,11 +3,9 @@ import logging
 from unittest.mock import MagicMock, patch
 
 from cbpi.api import *
-
 # from cbpi.controller.kettle_controller import KettleController
 # from cbpi.controller.step_controller import StepController
 from cbpi.api.step import StepMove, StepResult, StepState
-
 
 logger = logging.getLogger(__name__)
 

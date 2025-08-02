@@ -6,16 +6,19 @@ conflict detection, and coordinated access to GPIO pins across different
 plugin types (actors, sensors, inputs).
 """
 
+import asyncio
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from unittest.mock import patch, MagicMock
-from datetime import datetime, timedelta
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness, MockCBPiActorBase
-from tests.fixtures.hardware_mocks import MockRPiGPIO, HardwareTestHarness
-from tests.fixtures.test_data import PluginConfigFactory, GPIOActorConfigFactory
+from tests.fixtures.cbpi_mock import (MockCBPi, MockCBPiActorBase,
+                                      PluginTestHarness)
+from tests.fixtures.hardware_mocks import HardwareTestHarness, MockRPiGPIO
+from tests.fixtures.test_data import (GPIOActorConfigFactory,
+                                      PluginConfigFactory)
 
 # Mark all tests in this module as integration tests
 pytestmark = pytest.mark.integration

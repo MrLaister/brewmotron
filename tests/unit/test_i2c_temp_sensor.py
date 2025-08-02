@@ -5,20 +5,18 @@ Tests the I2C temperature sensor functionality with comprehensive hardware mocki
 and ADC simulation.
 """
 
+import asyncio
+import math
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
-from datetime import datetime
-import math
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
-from tests.fixtures.hardware_mocks import (
-    MockSMBus,
-    MockTemperatureSensor,
-    HardwareTestHarness,
-)
+from tests.fixtures.hardware_mocks import (HardwareTestHarness, MockSMBus,
+                                           MockTemperatureSensor)
 from tests.fixtures.test_data import PluginConfigFactory
 
 # Mark all tests in this module as hardware and I2C tests

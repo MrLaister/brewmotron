@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # import os
 # from aiohttp import web
-import logging
-
 # from unittest.mock import MagicMock, patch
 import asyncio
+import logging
 
 # import random
 from cbpi.api import *

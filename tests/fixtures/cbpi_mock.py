@@ -7,10 +7,10 @@ isolated testing of Brewmotron plugins without requiring a full CBPI installatio
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional, Callable, Union
-from unittest.mock import AsyncMock, MagicMock, PropertyMock
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Union
+from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 logger = logging.getLogger(__name__)
 
