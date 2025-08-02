@@ -63,15 +63,21 @@ class TestInternetConnectedGPIO:
             def init(self, cbpi):
                 self.state = False
                 self.cbpi = cbpi
+                # Mock initialization complete
+                self.initialized = True
                 return True
             
             async def on_start(self):
                 self.power = 100
                 gpio = self.props.get("GPIO")
                 # Mock GPIO.setup(gpio, GPIO.OUT) call
-                await self.off()
+                self.state = False  # Initialize to OFF state
                 # Mock starting ping loop
+                self.initialized = True  # Set during startup
                 return True
+            
+            async def off(self):
+                self.state = False
         
         plugin = await plugin_harness.load_plugin(
             MockGPIOInternetConnected,
@@ -85,6 +91,8 @@ class TestInternetConnectedGPIO:
         assert plugin.props['GPIO'] == 18
         assert plugin.props['SleepTime_Connected'] == 30
         assert plugin.props['SleepTime_Disconnected'] == 5
+        assert hasattr(plugin, 'initialized')
+        assert plugin.initialized == True
         
         # Test on_start behavior
         await plugin.on_start()
@@ -190,23 +198,21 @@ class TestInternetConnectedGPIO:
                     
                     if state != previous_state:
                         if state:
-                            self.state = True
                             try:
-                                asyncio.create_task(self.on())
+                                await self.on()
                             except:
                                 pass
                         else:
-                            self.state = False
                             try:
-                                asyncio.create_task(self.off())
+                                await self.off()
                             except:
                                 pass
                     
                     # Record sleep time based on state
-                    if self.state == True:
+                    if state == True:
                         refreshtime = self.props.get("SleepTime_Connected", 30)
                     else:
-                        refreshtime = self.props.get("SleepTime_Disconnected", 1)
+                        refreshtime = self.props.get("SleepTime_Disconnected", 5)
                     
                     self.sleep_times.append(refreshtime)
                     

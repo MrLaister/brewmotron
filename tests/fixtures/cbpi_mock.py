@@ -413,6 +413,11 @@ class PluginTestHarness:
         else:
             plugin_instance = plugin_class(self.cbpi, plugin_id, props)
         
+        # Populate config with props for extensions
+        if props:
+            for key, value in props.items():
+                self.cbpi.config.set(key, value)
+        
         # Register plugin
         await self.cbpi.register_plugin(plugin_id, plugin_instance)
         self.plugins[plugin_id] = plugin_instance
