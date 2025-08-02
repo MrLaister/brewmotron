@@ -52,7 +52,7 @@ jobs:
     
     - name: Run isort import sorting check
       run: |
-        isort --check-only --diff --color .
+        isort --check-only --diff .
     
     - name: Run flake8 linting
       run: |
