@@ -17,13 +17,14 @@ import subprocess
 from pathlib import Path
 from typing import List, Optional
 
+
 def run_command(cmd: List[str], description: str, check: bool = True) -> int:
     """Run a command and return the exit code."""
     print(f"\n{'='*60}")
     print(f"Running: {description}")
     print(f"Command: {' '.join(cmd)}")
-    print('='*60)
-    
+    print("=" * 60)
+
     try:
         result = subprocess.run(cmd, check=check)
         return result.returncode
@@ -35,240 +36,295 @@ def run_command(cmd: List[str], description: str, check: bool = True) -> int:
         print("Make sure pytest is installed: pip install -r requirements-test.txt")
         return 1
 
+
 def install_dependencies():
     """Install test dependencies."""
     print("Installing test dependencies...")
-    return run_command([
-        sys.executable, "-m", "pip", "install", "-r", "requirements-test.txt"
-    ], "Installing test dependencies")
+    return run_command(
+        [sys.executable, "-m", "pip", "install", "-r", "requirements-test.txt"],
+        "Installing test dependencies",
+    )
 
-def run_unit_tests(verbose: bool = False, coverage: bool = True, 
-                  pattern: Optional[str] = None) -> int:
+
+def run_unit_tests(
+    verbose: bool = False, coverage: bool = True, pattern: Optional[str] = None
+) -> int:
     """Run unit tests."""
     cmd = [sys.executable, "-m", "pytest", "tests/unit/"]
-    
+
     if verbose:
         cmd.append("-v")
     else:
         cmd.extend(["--tb=short"])
-    
+
     if coverage:
-        cmd.extend([
-            "--cov=.",
-            "--cov-report=term-missing",
-            "--cov-report=html:htmlcov",
-            "--cov-fail-under=70"
-        ])
-    
-    cmd.extend([
-        "-m", "not slow and not integration",
-        "--strict-markers"
-    ])
-    
+        cmd.extend(
+            [
+                "--cov=.",
+                "--cov-report=term-missing",
+                "--cov-report=html:htmlcov",
+                "--cov-fail-under=70",
+            ]
+        )
+
+    cmd.extend(["-m", "not slow and not integration", "--strict-markers"])
+
     if pattern:
         cmd.extend(["-k", pattern])
-    
+
     return run_command(cmd, "Unit Tests")
+
 
 def run_integration_tests(verbose: bool = False) -> int:
     """Run integration tests."""
     cmd = [
-        sys.executable, "-m", "pytest", "tests/integration/",
-        "-m", "integration",
-        "--strict-markers"
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/integration/",
+        "-m",
+        "integration",
+        "--strict-markers",
     ]
-    
+
     if verbose:
         cmd.append("-v")
     else:
         cmd.extend(["--tb=short"])
-    
+
     return run_command(cmd, "Integration Tests")
+
 
 def run_hardware_tests(verbose: bool = False) -> int:
     """Run hardware simulation tests."""
     cmd = [
-        sys.executable, "-m", "pytest", "tests/",
-        "-m", "hardware",
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/",
+        "-m",
+        "hardware",
         "--strict-markers",
-        "--timeout=300"
+        "--timeout=300",
     ]
-    
+
     if verbose:
         cmd.append("-v")
     else:
         cmd.extend(["--tb=short"])
-    
+
     return run_command(cmd, "Hardware Simulation Tests")
+
 
 def run_performance_tests(verbose: bool = False) -> int:
     """Run performance/slow tests."""
     cmd = [
-        sys.executable, "-m", "pytest", "tests/",
-        "-m", "slow",
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/",
+        "-m",
+        "slow",
         "--strict-markers",
-        "--timeout=600"
+        "--timeout=600",
     ]
-    
+
     if verbose:
         cmd.append("-v")
     else:
         cmd.extend(["--tb=short"])
-    
+
     return run_command(cmd, "Performance Tests")
+
 
 def run_all_tests(verbose: bool = False, fast: bool = False) -> int:
     """Run all tests."""
     cmd = [sys.executable, "-m", "pytest", "tests/"]
-    
+
     if verbose:
         cmd.append("-v")
     else:
         cmd.extend(["--tb=short"])
-    
-    cmd.extend([
-        "--cov=.",
-        "--cov-report=term-missing",
-        "--cov-report=html:htmlcov",
-        "--cov-fail-under=70",
-        "--strict-markers"
-    ])
-    
+
+    cmd.extend(
+        [
+            "--cov=.",
+            "--cov-report=term-missing",
+            "--cov-report=html:htmlcov",
+            "--cov-fail-under=70",
+            "--strict-markers",
+        ]
+    )
+
     if fast:
         cmd.extend(["-m", "not slow"])
-    
+
     return run_command(cmd, "All Tests")
+
 
 def run_lint_checks() -> int:
     """Run code quality checks."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Running Code Quality Checks")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Check if tools are available
-    tools = ['black', 'flake8', 'isort']
+    tools = ["black", "flake8", "isort"]
     missing_tools = []
-    
+
     for tool in tools:
         try:
             subprocess.run([tool, "--version"], capture_output=True, check=True)
         except (subprocess.CalledProcessError, FileNotFoundError):
             missing_tools.append(tool)
-    
+
     if missing_tools:
         print(f"Missing tools: {', '.join(missing_tools)}")
         print("Install them with: pip install black flake8 isort")
         return 1
-    
+
     # Run Black
-    black_result = run_command([
-        "black", "--check", "--diff", "--color", "."
-    ], "Black Code Formatting Check", check=False)
-    
+    black_result = run_command(
+        ["black", "--check", "--diff", "--color", "."],
+        "Black Code Formatting Check",
+        check=False,
+    )
+
     # Run isort
-    isort_result = run_command([
-        "isort", "--check-only", "--diff", "--color", "."
-    ], "Import Sorting Check", check=False)
-    
+    isort_result = run_command(
+        ["isort", "--check-only", "--diff", "--color", "."],
+        "Import Sorting Check",
+        check=False,
+    )
+
     # Run flake8
-    flake8_result = run_command([
-        "flake8", ".", "--count", "--select=E9,F63,F7,F82", 
-        "--show-source", "--statistics"
-    ], "Flake8 Critical Issues", check=False)
-    
-    flake8_all_result = run_command([
-        "flake8", ".", "--count", "--exit-zero", "--max-complexity=10",
-        "--max-line-length=127", "--statistics"
-    ], "Flake8 All Issues", check=False)
-    
+    flake8_result = run_command(
+        [
+            "flake8",
+            ".",
+            "--count",
+            "--select=E9,F63,F7,F82",
+            "--show-source",
+            "--statistics",
+        ],
+        "Flake8 Critical Issues",
+        check=False,
+    )
+
+    flake8_all_result = run_command(
+        [
+            "flake8",
+            ".",
+            "--count",
+            "--exit-zero",
+            "--max-complexity=10",
+            "--max-line-length=127",
+            "--statistics",
+        ],
+        "Flake8 All Issues",
+        check=False,
+    )
+
     # Return worst result
     return max(black_result, isort_result, flake8_result)
 
+
 def run_security_checks() -> int:
     """Run security checks."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Running Security Checks")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Check if tools are available
     try:
         subprocess.run(["safety", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("Safety not found. Install with: pip install safety")
         return 1
-    
+
     try:
         subprocess.run(["bandit", "--version"], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("Bandit not found. Install with: pip install bandit")
         return 1
-    
+
     # Run safety check
-    safety_result = run_command([
-        "safety", "check"
-    ], "Safety Vulnerability Check", check=False)
-    
+    safety_result = run_command(
+        ["safety", "check"], "Safety Vulnerability Check", check=False
+    )
+
     # Run bandit security check
-    bandit_result = run_command([
-        "bandit", "-r", ".", "-f", "txt"
-    ], "Bandit Security Check", check=False)
-    
+    bandit_result = run_command(
+        ["bandit", "-r", ".", "-f", "txt"], "Bandit Security Check", check=False
+    )
+
     return max(safety_result, bandit_result)
+
 
 def generate_test_report():
     """Generate comprehensive test report."""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Generating Comprehensive Test Report")
-    print("="*60)
-    
+    print("=" * 60)
+
     # Run tests with HTML report generation
     cmd = [
-        sys.executable, "-m", "pytest", "tests/",
+        sys.executable,
+        "-m",
+        "pytest",
+        "tests/",
         "--html=test-report.html",
         "--self-contained-html",
         "--cov=.",
         "--cov-report=html:htmlcov",
         "--cov-report=xml",
         "--junit-xml=test-results.xml",
-        "-m", "not slow"  # Skip slow tests for faster reporting
+        "-m",
+        "not slow",  # Skip slow tests for faster reporting
     ]
-    
+
     result = run_command(cmd, "Test Report Generation", check=False)
-    
+
     if result == 0:
         print("\nTest reports generated:")
         print("  - HTML Report: test-report.html")
         print("  - Coverage HTML: htmlcov/index.html")
         print("  - Coverage XML: coverage.xml")
         print("  - JUnit XML: test-results.xml")
-    
+
     return result
+
 
 def check_test_environment():
     """Check if test environment is properly set up."""
     print("Checking test environment setup...")
-    
+
     issues = []
-    
+
     # Check Python version
     if sys.version_info < (3, 9):
-        issues.append(f"Python 3.9+ required, found {sys.version_info.major}.{sys.version_info.minor}")
-    
+        issues.append(
+            f"Python 3.9+ required, found {sys.version_info.major}.{sys.version_info.minor}"
+        )
+
     # Check if requirements file exists
     if not Path("requirements-test.txt").exists():
         issues.append("requirements-test.txt not found")
-    
+
     # Check if test directory exists
     if not Path("tests").exists():
         issues.append("tests directory not found")
-    
+
     # Check if pytest is available
     try:
-        subprocess.run([sys.executable, "-m", "pytest", "--version"], 
-                      capture_output=True, check=True)
+        subprocess.run(
+            [sys.executable, "-m", "pytest", "--version"],
+            capture_output=True,
+            check=True,
+        )
     except (subprocess.CalledProcessError, FileNotFoundError):
         issues.append("pytest not available")
-    
+
     if issues:
         print("Issues found:")
         for issue in issues:
@@ -277,6 +333,7 @@ def check_test_environment():
     else:
         print("Test environment looks good!")
         return 0
+
 
 def main():
     """Main entry point."""
@@ -296,50 +353,53 @@ Examples:
   %(prog)s report                  # Generate test reports
   %(prog)s check                   # Check test environment setup
   %(prog)s install                 # Install test dependencies
-        """
+        """,
     )
-    
+
     parser.add_argument(
         "command",
-        choices=["unit", "integration", "hardware", "performance", "all", 
-                "lint", "security", "report", "check", "install"],
-        help="Test command to run"
+        choices=[
+            "unit",
+            "integration",
+            "hardware",
+            "performance",
+            "all",
+            "lint",
+            "security",
+            "report",
+            "check",
+            "install",
+        ],
+        help="Test command to run",
     )
-    
+
     parser.add_argument(
-        "-v", "--verbose",
-        action="store_true",
-        help="Enable verbose output"
+        "-v", "--verbose", action="store_true", help="Enable verbose output"
     )
-    
+
     parser.add_argument(
-        "--fast",
-        action="store_true",
-        help="Skip slow tests (for 'all' command)"
+        "--fast", action="store_true", help="Skip slow tests (for 'all' command)"
     )
-    
+
     parser.add_argument(
         "--no-cov",
         action="store_true",
-        help="Disable coverage reporting (for 'unit' command)"
+        help="Disable coverage reporting (for 'unit' command)",
     )
-    
+
     parser.add_argument(
-        "-k", "--pattern",
-        help="Run tests matching pattern (for 'unit' command)"
+        "-k", "--pattern", help="Run tests matching pattern (for 'unit' command)"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Change to script directory
     os.chdir(Path(__file__).parent)
-    
+
     # Route to appropriate function
     if args.command == "unit":
         return run_unit_tests(
-            verbose=args.verbose,
-            coverage=not args.no_cov,
-            pattern=args.pattern
+            verbose=args.verbose, coverage=not args.no_cov, pattern=args.pattern
         )
     elif args.command == "integration":
         return run_integration_tests(verbose=args.verbose)
@@ -362,6 +422,7 @@ Examples:
     else:
         parser.print_help()
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

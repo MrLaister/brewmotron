@@ -11,14 +11,14 @@ from smbus import SMBus
 import busio
 from adafruit_ht16k33 import segments
 
-#from RPLCD.i2c import CharLCD
+# from RPLCD.i2c import CharLCD
 
 from time import strftime
 from cbpi.api import *
 from cbpi.api.config import ConfigType
 
-#import RPi.GPIO as GPIO
-#GPIO.setmode(GPIO.BCM)
+# import RPi.GPIO as GPIO
+# GPIO.setmode(GPIO.BCM)
 
 # pipy related installation of plugin:
 # goto folder where CBPI4 is installed (at least the folder which is containing the config folder)
@@ -28,23 +28,27 @@ from cbpi.api.config import ConfigType
 logger = logging.getLogger(__name__)
 DEBUG = True  # turn True to show (much) more debug info in app.log
 
-#TODO!! - There's a bug that causes spargey boi to kill the hardware html page when displaying information on the 7seg which needs debugging. Doesn't seem to be caused by the sensor type - maybe some data type handling?
-#TODO - activeLEDKettleMap genericising to the settings menu - pop in 3x LEDs for association with an active boiler and move to a separate plugin
-#TODO - make the settings menu lookup functions and select more generic if possible
-#TODO - Add in the push buttons to progress a running process - should this be a separate plugin? --> Can be, yes
-#TODO - clean up the running code and see if I can move things to states of attributes and not throwing around arbitrary data
-#TODO (Later) - should this be just a brewmotron plugin and we also do the mode switch here? --> initial thoughts that some other code does this if I2C bus access contention isn't an issue. How does it drive the state?
-#TODO (Later) - add in Units (they are commented out at the moment, need adding back in) - C/F. Currently is C only
+# TODO!! - There's a bug that causes spargey boi to kill the hardware html page when displaying information on the 7seg which needs debugging. Doesn't seem to be caused by the sensor type - maybe some data type handling?
+# TODO - activeLEDKettleMap genericising to the settings menu - pop in 3x LEDs for association with an active boiler and move to a separate plugin
+# TODO - make the settings menu lookup functions and select more generic if possible
+# TODO - Add in the push buttons to progress a running process - should this be a separate plugin? --> Can be, yes
+# TODO - clean up the running code and see if I can move things to states of attributes and not throwing around arbitrary data
+# TODO (Later) - should this be just a brewmotron plugin and we also do the mode switch here? --> initial thoughts that some other code does this if I2C bus access contention isn't an issue. How does it drive the state?
+# TODO (Later) - add in Units (they are commented out at the moment, need adding back in) - C/F. Currently is C only
 
 try:
     import RPi.GPIO as GPIO
+
     GPIO.setmode(GPIO.BCM)
 except Exception as e:
     logger.warning(e)
 
+
 class SSDisplay(CBPiExtension):
     def __init__(self, cbpi):
-        self.settinggroupname = "SevenSegmentDisplay_" #TODO: Change to "BMT-SevenSegmentDisplay_"
+        self.settinggroupname = (
+            "SevenSegmentDisplay_"  # TODO: Change to "BMT-SevenSegmentDisplay_"
+        )
         self.cbpi = cbpi
         self.sevsegcounter = 0
         self._task = asyncio.create_task(self.run())
@@ -53,14 +57,14 @@ class SSDisplay(CBPiExtension):
         gpio_num = await self.get_actor_gpio(actor_id)
         GPIO.output(gpio_num, True)
         return
-    
+
     async def actor_off(self, actor_id):
         gpio_num = await self.get_actor_gpio(actor_id)
-        
+
         # print(gpio_num, actor_id)
         GPIO.output(gpio_num, False)
         return
-    
+
     async def displayall(self, displaystring):
         if self.sevSeg == []:
             return
@@ -77,23 +81,33 @@ class SSDisplay(CBPiExtension):
         except Exception as e:
             logger.error(e)
         return
-    
+
     async def run(self):
         class Display(object):
-            def __init__(self, number, hardware, mode=None, kettle=None, sensor=None, tempType=None):
+            def __init__(
+                self,
+                number,
+                hardware,
+                mode=None,
+                kettle=None,
+                sensor=None,
+                tempType=None,
+            ):
                 self.number = number
                 self.hardware = hardware
                 self.mode = mode
                 self.kettle = kettle
                 self.sensor = sensor
                 self.tempType = tempType
+
             def print(self, text=""):
                 self.hardware.fill(0)
                 self.hardware.print(text)
-            def printc(self, temp="", fmt='{:3.1f}'):
+
+            def printc(self, temp="", fmt="{:3.1f}"):
                 self.hardware.fill(0)
                 if temp >= 100:
-                    temp = '{:3.0f}'.format(temp) + "C"
+                    temp = "{:3.0f}".format(temp) + "C"
                 elif temp > 0:
                     temp = fmt.format(temp) + "C"
                 else:
@@ -103,11 +117,11 @@ class SSDisplay(CBPiExtension):
                 except Exception as e:
                     print(e)
 
-        logger.info('Seven Segment Display - Info: Starting background task')
+        logger.info("Seven Segment Display - Info: Starting background task")
 
-        #Globals setup
+        # Globals setup
         refresh = await self.set_display_refresh()
-        logger.info('Seven Segment Display - refresh: %s' % refresh)
+        logger.info("Seven Segment Display - refresh: %s" % refresh)
         SCL = 3
         SDA = 2
         i2c = busio.I2C(SCL, SDA)
@@ -116,67 +130,90 @@ class SSDisplay(CBPiExtension):
         activeKettleLEDMap = {
             "5gi2srfkySmuvsZWndshEP": "kqyAAU8eaMWKPtWaEc6S9L",
             "JZTezUkmqBUSgPz39hENU9": "5VV8tfWvArVbm93oXhyWAZ",
-            "9aSRzC9vXiLhDDiQyjUq3b": "9x34RbRHcq2tuRuYNVrQ9X"
-        } # This needs genericising to the settings menu
+            "9aSRzC9vXiLhDDiQyjUq3b": "9x34RbRHcq2tuRuYNVrQ9X",
+        }  # This needs genericising to the settings menu
         ledIDMap = {
             "kqyAAU8eaMWKPtWaEc6S9L",
             "5VV8tfWvArVbm93oXhyWAZ",
-            "9x34RbRHcq2tuRuYNVrQ9X"
+            "9x34RbRHcq2tuRuYNVrQ9X",
         }
-        for led in ledIDMap: await self.initialise_actor(led)
-        #unit = await self.get_cbpi_temp_unit()
-        #logger.info('Seven Segment Display - unit: °%s' % unit)
+        for led in ledIDMap:
+            await self.initialise_actor(led)
+        # unit = await self.get_cbpi_temp_unit()
+        # logger.info('Seven Segment Display - unit: °%s' % unit)
 
-        #per-display setup
+        # per-display setup
         self.sevSeg = []
         displayAddresses = ["0x70", "0x74", "0x72", "0x76", "0x71", "0x75"]
 
-        for i, displayAddress in enumerate(displayAddresses,1):
+        for i, displayAddress in enumerate(displayAddresses, 1):
             i2caddress = await self.set_displayAddress(
                 displayNo=i,
                 defaultValue=displayAddress,
-                settingSubtitle="Your 7-segment i2c address, looks like " + displayAddress + ". CBPi reboot required for changes to take effect"
+                settingSubtitle="Your 7-segment i2c address, looks like "
+                + displayAddress
+                + ". CBPi reboot required for changes to take effect",
             )
-            
-            if DEBUG: logger.info("Setup details for: Display_%s" % i)
-            
+
+            if DEBUG:
+                logger.info("Setup details for: Display_%s" % i)
+
             display_mode = await self.set_display_mode(i)
-            if DEBUG: logger.info('Seven Segment Display - display_mode: %s' % display_mode)
+            if DEBUG:
+                logger.info("Seven Segment Display - display_mode: %s" % display_mode)
 
             kettle_id = await self.set_kettle(i)
-            if DEBUG: logger.info('Seven Segment Display - kettle_id: %s' % kettle_id)
+            if DEBUG:
+                logger.info("Seven Segment Display - kettle_id: %s" % kettle_id)
 
-            #sensor = await self.set_sensortype_for_sensor_mode(i)
-            #if DEBUG: logger.info('Seven Segment Display - sensor: %s' % sensor)
+            # sensor = await self.set_sensortype_for_sensor_mode(i)
+            # if DEBUG: logger.info('Seven Segment Display - sensor: %s' % sensor)
 
             tempType = await self.set_tempType(i)
 
             try:
-                self.sevSeg.append(Display(i, segments.Seg7x4(i2c, address=i2caddress), display_mode, kettle_id, None, tempType))
-                if DEBUG: logger.info("Seven Segment Display - Info: Display " + str(i+1) + " object added")
+                self.sevSeg.append(
+                    Display(
+                        i,
+                        segments.Seg7x4(i2c, address=i2caddress),
+                        display_mode,
+                        kettle_id,
+                        None,
+                        tempType,
+                    )
+                )
+                if DEBUG:
+                    logger.info(
+                        "Seven Segment Display - Info: Display "
+                        + str(i + 1)
+                        + " object added"
+                    )
             except Exception as e:
                 logger.warning("Seven segment display address setup failed.")
                 logger.warning(e)
             pass
-#        for display in self.sevSeg:
-#            display.print("D"+str(i+1))
+        #        for display in self.sevSeg:
+        #            display.print("D"+str(i+1))
 
-        if DEBUG: logger.info("Seven Segment Display - Info: Display setup complete")
+        if DEBUG:
+            logger.info("Seven Segment Display - Info: Display setup complete")
 
         # *********************************************************************************************************
         while True:
             # this is the main code repeated constantly
             refresh_time = await self.set_display_refresh()
-            [active_step_name, active_step_temp_target, target_kettle] = await self.get_active_step_values()
-            #here's where the selected LEDs can go and be mapped to active_state['name']. They need to be defined in the settings.
+            [active_step_name, active_step_temp_target, target_kettle] = (
+                await self.get_active_step_values()
+            )
+            # here's where the selected LEDs can go and be mapped to active_state['name']. They need to be defined in the settings.
             for display in self.sevSeg:
                 display.mode = await self.set_display_mode(display.number)
                 display.kettle = await self.set_kettle(display.number)
-                #display.sensor = await self.set_sensortype_for_sensor_mode(display.number)
+                # display.sensor = await self.set_sensortype_for_sensor_mode(display.number)
 
-                if display.mode == 'Kettle':
+                if display.mode == "Kettle":
                     await self.show_kettle(display)
-                #elif active_step != 'no active step' and display.mode == 'Sensordisplay':
+                # elif active_step != 'no active step' and display.mode == 'Sensordisplay':
                 #    await self.show_sensor(display)
                 else:
                     await self.show_standby(display)
@@ -188,7 +225,8 @@ class SSDisplay(CBPiExtension):
             else:
                 if target_kettle is not None:
                     actor_id = activeKettleLEDMap[target_kettle]
-                    if actor_id not in enabledActorsList: enabledActorsList.append(actor_id)
+                    if actor_id not in enabledActorsList:
+                        enabledActorsList.append(actor_id)
                     for led in ledIDMap:
                         if led == actor_id:
                             await self.actor_on(led)
@@ -197,26 +235,27 @@ class SSDisplay(CBPiExtension):
             await asyncio.sleep(refresh_time)
         pass
         # *********************************************************************************************************
-    
 
     async def show_standby(self, display):
         display.print("----")
-        #ip = await self.set_ip()
+        # ip = await self.set_ip()
         # await asyncio.sleep(1)
-    
+
     async def show_kettle(self, display):
         display.hardware.print(":")
         if display.kettle is None or display.kettle is "":
-            #display.kettle = self.cbpi.config.get('MASH_TUN', None)
+            # display.kettle = self.cbpi.config.get('MASH_TUN', None)
             return
-        
+
         kettlevalues = await self.get_kettle_values(display.kettle)
-        kettle_sensor_id = kettlevalues['kettle_sensor_id']
-        sensor_value = self.cbpi.sensor.get_sensor_value(kettle_sensor_id).get('value')
-        kettle_target_temp = kettlevalues['kettle_target_temp']
+        kettle_sensor_id = kettlevalues["kettle_sensor_id"]
+        sensor_value = self.cbpi.sensor.get_sensor_value(kettle_sensor_id).get("value")
+        kettle_target_temp = kettlevalues["kettle_target_temp"]
         try:
-            if display.tempType == "Actual": display.printc(sensor_value,'{:3.1f}')
-            if display.tempType == "Target": display.printc(kettle_target_temp,'{:3.0f}')
+            if display.tempType == "Actual":
+                display.printc(sensor_value, "{:3.1f}")
+            if display.tempType == "Target":
+                display.printc(kettle_target_temp, "{:3.0f}")
         except Exception as e:
             logger.warning(e)
             print(e)
@@ -265,7 +304,7 @@ class SSDisplay(CBPiExtension):
     #         logger.warning('no ip found')
     #         if DEBUG: logger.warning(e)
     #         return ip_addr
-            
+
     #     return ip_addr
 
     async def set_displayAddress(self, displayNo, defaultValue, settingSubtitle):
@@ -273,14 +312,15 @@ class SSDisplay(CBPiExtension):
         address = self.cbpi.config.get(settingsName, None)
         if address is None:
             try:
-                await self.cbpi.config.add(settingsName, defaultValue, ConfigType.STRING,
-                                           settingSubtitle)
+                await self.cbpi.config.add(
+                    settingsName, defaultValue, ConfigType.STRING, settingSubtitle
+                )
                 logger.info(str(settingsName + "added"))
                 address = self.cbpi.config.get(settingsName, None)
             except Exception as e:
-                logger.warning('Unable to update config for ' + settingsName)
+                logger.warning("Unable to update config for " + settingsName)
                 logger.warning(e)
-        
+
         return int(address, 16)
 
     async def set_display_refresh(self):
@@ -289,16 +329,26 @@ class SSDisplay(CBPiExtension):
         if ref is None:
             logger.info(settingsName + " added")
             try:
-                await self.cbpi.config.add(settingsName, 3, ConfigType.SELECT,
-                                           'Display update time in seconds for all displays. CBPi reboot not required'
-                                           'required', [{"label": "1s", "value": 1}, {"label": "2s", "value": 2},
-                                                        {"label": "3s", "value": 3}, {"label": "4s", "value": 4},
-                                                        {"label": "5s", "value": 5}, {"label": "6s", "value": 6}])
+                await self.cbpi.config.add(
+                    settingsName,
+                    3,
+                    ConfigType.SELECT,
+                    "Display update time in seconds for all displays. CBPi reboot not required"
+                    "required",
+                    [
+                        {"label": "1s", "value": 1},
+                        {"label": "2s", "value": 2},
+                        {"label": "3s", "value": 3},
+                        {"label": "4s", "value": 4},
+                        {"label": "5s", "value": 5},
+                        {"label": "6s", "value": 6},
+                    ],
+                )
                 ref = self.cbpi.config.get(settingsName, None)
             except Exception as e:
-                logger.warning('Unable to update config for: ' + settingsName)
+                logger.warning("Unable to update config for: " + settingsName)
                 logger.warning(e)
-        
+
         return ref
 
     async def set_display_mode(self, displayNo):
@@ -307,10 +357,19 @@ class SSDisplay(CBPiExtension):
         if mode is None:
             logger.info(settingsName + " added")
             try:
-                await self.cbpi.config.add(settingsName, 'Singledisplay', ConfigType.SELECT,
-                                           "select the mode of Display_" + str(displayNo) + ", consult readme, NO! CBPi reboot "
-                                           "required", [{"label": "From Kettle", "value": 'Kettle'},
-                                                        {"label": "From Sensor", "value": 'Sensor'}])
+                await self.cbpi.config.add(
+                    settingsName,
+                    "Singledisplay",
+                    ConfigType.SELECT,
+                    "select the mode of Display_"
+                    + str(displayNo)
+                    + ", consult readme, NO! CBPi reboot "
+                    "required",
+                    [
+                        {"label": "From Kettle", "value": "Kettle"},
+                        {"label": "From Sensor", "value": "Sensor"},
+                    ],
+                )
                 mode = self.cbpi.config.get(settingsName, None)
             except Exception as e:
                 logger.warning("Unable to update " + settingsName + " config")
@@ -324,33 +383,43 @@ class SSDisplay(CBPiExtension):
         kettle_id = self.cbpi.config.get(settingsName, None)
         if kettle_id is None:
             try:
-                await self.cbpi.config.add(settingsName, '', ConfigType.KETTLE,
-                                           'select the kettle to be displayed, consult readme, '
-                                           'NO! CBPi reboot required')
+                await self.cbpi.config.add(
+                    settingsName,
+                    "",
+                    ConfigType.KETTLE,
+                    "select the kettle to be displayed, consult readme, "
+                    "NO! CBPi reboot required",
+                )
                 logger.info(settingsName + " added")
                 kettle_id = self.cbpi.config.get(settingsName, None)
             except Exception as e:
-                logger.warning('Unable to update config for ' + settingsName)
+                logger.warning("Unable to update config for " + settingsName)
                 logger.warning(e)
             pass
         pass
         return kettle_id
-    
+
     async def set_tempType(self, displayNo):
         settingsName = self.settinggroupname + str(displayNo) + "_TemperatureType"
         tempType = self.cbpi.config.get(settingsName, None)
         if tempType is None:
             try:
-                await self.cbpi.config.add(settingsName, '', ConfigType.SELECT,
-                                           'select the temperature Type (Actual / Target) to be displayed, consult readme, '
-                                           'NO! CBPi reboot required',
-                                           [{"label": "---", "value": None},
-                                           {"label": "Actual", "value": "Actual"},
-                                           {"label": "Target", "value": "Target"}])
+                await self.cbpi.config.add(
+                    settingsName,
+                    "",
+                    ConfigType.SELECT,
+                    "select the temperature Type (Actual / Target) to be displayed, consult readme, "
+                    "NO! CBPi reboot required",
+                    [
+                        {"label": "---", "value": None},
+                        {"label": "Actual", "value": "Actual"},
+                        {"label": "Target", "value": "Target"},
+                    ],
+                )
                 logger.info(settingsName + " added")
                 tempType = self.cbpi.config.get(settingsName, None)
             except Exception as e:
-                logger.warning('Unable to update config for ' + settingsName)
+                logger.warning("Unable to update config for " + settingsName)
                 logger.warning(e)
             pass
         pass
@@ -360,7 +429,7 @@ class SSDisplay(CBPiExtension):
         noactivestep = ["no active step", "---", None]
         try:
             step_json_obj = self.cbpi.step.get_state()
-            steps = step_json_obj['steps']
+            steps = step_json_obj["steps"]
             last_active_step_target_kettle = None
 
             result = noactivestep
@@ -382,7 +451,11 @@ class SSDisplay(CBPiExtension):
                     except:
                         pass
                     # active_step_timer_value = ("Timer: %s" % (steps[i]["props"]["Timer"])) --> Taken out, but could use later if BMT wants
-                    return [active_step_name, active_step_target_temp, last_active_step_target_kettle]
+                    return [
+                        active_step_name,
+                        active_step_target_temp,
+                        last_active_step_target_kettle,
+                    ]
                 else:
                     result = noactivestep
                 pass
@@ -396,7 +469,7 @@ class SSDisplay(CBPiExtension):
     async def get_kettle_values(self, kettle_id):
         try:
             kettle_json_obj = self.cbpi.kettle.get_state()
-            kettles = kettle_json_obj['data']
+            kettles = kettle_json_obj["data"]
             # if DEBUG: logger.info("kettles %s" % kettles)
             i = 0
             result = None
@@ -407,24 +480,28 @@ class SSDisplay(CBPiExtension):
                     kettle_heater_id = kettle["heater"]
                     kettle_sensor_id = kettle["sensor"]
                     kettle_target_temp = kettle["target_temp"]
-                    return {'kettle_id': kettle_id,
-                            'kettle_name': kettle_name,
-                            'kettle_heater_id': kettle_heater_id,
-                            'kettle_sensor_id': kettle_sensor_id,
-                            'kettle_target_temp': kettle_target_temp}
+                    return {
+                        "kettle_id": kettle_id,
+                        "kettle_name": kettle_name,
+                        "kettle_heater_id": kettle_heater_id,
+                        "kettle_sensor_id": kettle_sensor_id,
+                        "kettle_target_temp": kettle_target_temp,
+                    }
                 else:
-                    result = 'no kettle found with id %s' % kettle_id
+                    result = "no kettle found with id %s" % kettle_id
                 pass
                 i = i + 1
             pass
             return result
         except Exception as e:
             logger.warning(e)
-            return {'kettle_id': 'error',
-                    'kettle_name': 'error',
-                    'kettle_heater_id': 'error',
-                    'kettle_sensor_id': 'error',
-                    'kettle_target_temp': 0}
+            return {
+                "kettle_id": "error",
+                "kettle_name": "error",
+                "kettle_heater_id": "error",
+                "kettle_sensor_id": "error",
+                "kettle_target_temp": 0,
+            }
         pass
 
     pass
@@ -432,21 +509,26 @@ class SSDisplay(CBPiExtension):
     async def get_sensor_values_by_id(self, sensor_id):
         try:
             sensor_json_obj = self.cbpi.sensor.get_state()
-            sensors = sensor_json_obj['data']
-            if DEBUG: logger.info("sensors %s" % sensors)
+            sensors = sensor_json_obj["data"]
+            if DEBUG:
+                logger.info("sensors %s" % sensors)
             i = 0
             while i < len(sensors):
                 if sensors[i]["id"] == sensor_id:
-                    sensor_type = (sensors[i]["type"])
-                    sensor_name = (sensors[i]["name"])
+                    sensor_type = sensors[i]["type"]
+                    sensor_name = sensors[i]["name"]
                     # sensor_id = (sensors[i]['id'])
-                    sensor_props = (sensors[i]["props"])
-                    sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get('value')
-                    return {'sensor_id': sensor_id,
-                            'sensor_name': sensor_name,
-                            'sensor_type': sensor_type,
-                            'sensor_value': sensor_value,
-                            'sensor_props': sensor_props}
+                    sensor_props = sensors[i]["props"]
+                    sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get(
+                        "value"
+                    )
+                    return {
+                        "sensor_id": sensor_id,
+                        "sensor_name": sensor_name,
+                        "sensor_type": sensor_type,
+                        "sensor_value": sensor_value,
+                        "sensor_props": sensor_props,
+                    }
                 else:
 
                     pass
@@ -455,18 +537,20 @@ class SSDisplay(CBPiExtension):
             pass
         except Exception as e:
             logger.info(e)
-            return {'sensor_id': 'error',
-                    'sensor_name': 'error',
-                    'sensor_type': 'error',
-                    'sensor_value': 'error',
-                    'sensor_props': 'error'}
+            return {
+                "sensor_id": "error",
+                "sensor_name": "error",
+                "sensor_type": "error",
+                "sensor_value": "error",
+                "sensor_props": "error",
+            }
         pass
         await asyncio.sleep(1)
 
     async def get_kettle_gpio(self, actor_id):
         try:
             actor_json_obj = self.cbpi.actor.get_state()
-            actors = actor_json_obj['data']
+            actors = actor_json_obj["data"]
 
             # if DEBUG: logger.info("kettles %s" % kettles)
             i = 0
@@ -476,7 +560,7 @@ class SSDisplay(CBPiExtension):
                     result = actor["props"]["GPIO"]
                     return result
                 else:
-                    result = 'no actor found with id %s' % actor_id
+                    result = "no actor found with id %s" % actor_id
             return result
         except Exception as e:
             logger.warning(e)
@@ -485,7 +569,7 @@ class SSDisplay(CBPiExtension):
     async def get_actor_gpio(self, actor_id):
         try:
             actor_json_obj = self.cbpi.actor.get_state()
-            actors = actor_json_obj['data']
+            actors = actor_json_obj["data"]
             # if DEBUG: logger.info("kettles %s" % kettles)
             i = 0
             result = None
@@ -494,7 +578,7 @@ class SSDisplay(CBPiExtension):
                     result = actor["props"]["GPIO"]
                     return result
                 else:
-                    result = 'no actor found with id %s' % actor_id
+                    result = "no actor found with id %s" % actor_id
             return result
         except Exception as e:
             logger.warning(e)
