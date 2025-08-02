@@ -28,7 +28,7 @@ fake-rpi>=0.7.0
 # cbpi4>=4.0.0  # Uncomment when testing against actual CBPI
 
 # Development and quality tools
-black>=23.0.0
+black==24.2.0
 flake8>=6.0.0
 mypy>=1.0.0
 isort>=5.12.0
