@@ -31,7 +31,7 @@ fake-rpi>=0.7.0
 black==24.2.0
 flake8>=6.0.0
 mypy>=1.0.0
-isort>=5.12.0
+isort[colors]>=5.12.0
 
 # Performance and profiling
 memory-profiler>=0.60.0
