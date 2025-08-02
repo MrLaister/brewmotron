@@ -14,8 +14,7 @@ import pytest_asyncio
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
-from tests.fixtures.hardware_mocks import (HardwareTestHarness, MockLCDisplay,
-                                           MockSMBus)
+from tests.fixtures.hardware_mocks import HardwareTestHarness, MockLCDisplay, MockSMBus
 from tests.fixtures.test_data import PluginConfigFactory
 
 # Mark all tests in this module as hardware tests
@@ -555,8 +554,9 @@ class TestLCDisplayEdgeCases:
                         try:
                             # Simulate connection attempt
                             if self.connection_attempts > 3:
-                                from tests.fixtures.hardware_mocks import \
-                                    MockLCDisplay as HardwareMockLCDisplay
+                                from tests.fixtures.hardware_mocks import (
+                                    MockLCDisplay as HardwareMockLCDisplay,
+                                )
 
                                 self.lcd = HardwareMockLCDisplay(
                                     address=0x27, cols=20, rows=4

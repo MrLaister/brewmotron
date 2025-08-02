@@ -265,9 +265,11 @@ def mock_cbpi():
 @pytest.fixture
 def mock_cbpi_plugin_base():
     """Mock the base CBPi plugin classes."""
-    with patch("cbpi.api.CBPiActor") as actor_mock, patch(
-        "cbpi.api.CBPiSensor"
-    ) as sensor_mock, patch("cbpi.api.CBPiExtension") as extension_mock:
+    with (
+        patch("cbpi.api.CBPiActor") as actor_mock,
+        patch("cbpi.api.CBPiSensor") as sensor_mock,
+        patch("cbpi.api.CBPiExtension") as extension_mock,
+    ):
 
         # Configure base class mocks
         actor_mock.return_value = AsyncMock()

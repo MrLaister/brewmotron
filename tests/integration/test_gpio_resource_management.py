@@ -14,11 +14,9 @@ import pytest
 import pytest_asyncio
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import (MockCBPi, MockCBPiActorBase,
-                                      PluginTestHarness)
+from tests.fixtures.cbpi_mock import MockCBPi, MockCBPiActorBase, PluginTestHarness
 from tests.fixtures.hardware_mocks import HardwareTestHarness, MockRPiGPIO
-from tests.fixtures.test_data import (GPIOActorConfigFactory,
-                                      PluginConfigFactory)
+from tests.fixtures.test_data import GPIOActorConfigFactory, PluginConfigFactory
 
 # Mark all tests in this module as integration tests
 pytestmark = pytest.mark.integration

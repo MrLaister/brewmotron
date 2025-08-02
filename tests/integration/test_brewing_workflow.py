@@ -15,11 +15,19 @@ import pytest
 import pytest_asyncio
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import (MockCBPi, MockCBPiActorBase,
-                                      MockCBPiSensorBase, PluginTestHarness)
-from tests.fixtures.hardware_mocks import (Mock7SegmentDisplay, MockLCDisplay,
-                                           MockRPiGPIO, MockTemperatureSensor,
-                                           create_brewmotron_hardware_setup)
+from tests.fixtures.cbpi_mock import (
+    MockCBPi,
+    MockCBPiActorBase,
+    MockCBPiSensorBase,
+    PluginTestHarness,
+)
+from tests.fixtures.hardware_mocks import (
+    Mock7SegmentDisplay,
+    MockLCDisplay,
+    MockRPiGPIO,
+    MockTemperatureSensor,
+    create_brewmotron_hardware_setup,
+)
 from tests.fixtures.test_data import PluginConfigFactory
 
 # Mark all tests in this module as integration tests

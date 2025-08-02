@@ -14,8 +14,7 @@ import pytest_asyncio
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
 from tests.fixtures.hardware_mocks import HardwareTestHarness, MockRPiGPIO
-from tests.fixtures.test_data import (GPIOActorConfigFactory,
-                                      PluginConfigFactory)
+from tests.fixtures.test_data import GPIOActorConfigFactory, PluginConfigFactory
 
 # Mark all tests in this module as hardware tests
 pytestmark = pytest.mark.hardware

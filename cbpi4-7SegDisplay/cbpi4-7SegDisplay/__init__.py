@@ -11,6 +11,7 @@ import busio
 from adafruit_ht16k33 import segments
 from cbpi.api import *
 from cbpi.api.config import ConfigType
+
 # 7Seg Required
 from smbus import SMBus
 
