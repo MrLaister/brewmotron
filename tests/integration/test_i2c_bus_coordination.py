@@ -5,12 +5,13 @@ Tests multiple plugins sharing the I2C bus simultaneously, ensuring proper
 bus arbitration, error handling, and data integrity across multiple devices.
 """
 
-import pytest
-import pytest_asyncio
 import asyncio
 import threading
 from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
+
+import pytest
+import pytest_asyncio
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
