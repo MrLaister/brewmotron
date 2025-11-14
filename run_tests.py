@@ -60,7 +60,7 @@ def run_unit_tests(
     if coverage:
         cmd.extend(
             [
-                "--cov=.",
+                "--cov=tests/unit",
                 "--cov-report=term-missing",
                 "--cov-report=html:htmlcov",
                 "--cov-fail-under=70",
@@ -148,7 +148,7 @@ def run_all_tests(verbose: bool = False, fast: bool = False) -> int:
 
     cmd.extend(
         [
-            "--cov=.",
+            "--cov=tests/unit",
             "--cov-report=term-missing",
             "--cov-report=html:htmlcov",
             "--cov-fail-under=70",
@@ -275,7 +275,7 @@ def generate_test_report():
         "tests/",
         "--html=test-report.html",
         "--self-contained-html",
-        "--cov=.",
+        "--cov=tests/unit",
         "--cov-report=html:htmlcov",
         "--cov-report=xml",
         "--junit-xml=test-results.xml",
