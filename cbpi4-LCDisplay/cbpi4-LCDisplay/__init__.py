@@ -195,7 +195,7 @@ class LCDisplay(CBPiExtension):
 
         # what if kettle_id ="" like a forgotten settings entry?  # todo
         # get default Kettle from Settings
-        if kettle_id is None or kettle_id is "":
+        if kettle_id is None or kettle_id == "":
             kettle_id = self.cbpi.config.get("MASH_TUN", None)
         pass
 

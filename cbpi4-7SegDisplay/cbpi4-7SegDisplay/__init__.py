@@ -244,7 +244,7 @@ class SSDisplay(CBPiExtension):
 
     async def show_kettle(self, display):
         display.hardware.print(":")
-        if display.kettle is None or display.kettle is "":
+        if display.kettle is None or display.kettle == "":
             # display.kettle = self.cbpi.config.get('MASH_TUN', None)
             return
 
