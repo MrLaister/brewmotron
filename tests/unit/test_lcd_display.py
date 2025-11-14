@@ -342,7 +342,7 @@ class TestLCDisplay:
             async def on_stop(self):
                 self.running = False
 
-        # Create displays on different addresses
+        # Create and verify displays on different addresses
         for i, addr in enumerate(addresses):
             config = PluginConfigFactory(
                 id=f"test_lcd_{i}",
@@ -356,17 +356,17 @@ class TestLCDisplay:
                 config.id,
                 config.props,  # Pass props to ensure config access
             )
-            displays.append(display)
 
-        # Verify each display has correct address
-        for i, display in enumerate(displays):
-            # Start the plugin to trigger config reading
-            await display.on_start()
-            expected_addr = addresses[i]
-            # Convert to decimal for comparison since lcd_address is stored as int
+            # Verify address immediately after loading (on_start was already called by load_plugin)
+            expected_addr = addr
             assert (
                 display.lcd_address == expected_addr
             ), f"Expected {expected_addr}, got {display.lcd_address}"
+
+            displays.append(display)
+
+        # Clean up all displays
+        for display in displays:
             await display.on_stop()
 
     @pytest.mark.asyncio
