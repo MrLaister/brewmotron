@@ -20,6 +20,7 @@ responses>=0.23.0
 # Async testing utilities
 pytest-asyncio>=0.21.0
 asynctest>=0.13.0
+async-timeout>=4.0.0  # For timeout context manager compatibility with Python <3.11
 
 # Hardware simulation dependencies
 fake-rpi>=0.7.0

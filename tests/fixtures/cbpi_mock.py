@@ -12,6 +12,8 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
+import async_timeout
+
 logger = logging.getLogger(__name__)
 
 # =============================================================================
@@ -460,7 +462,7 @@ class PluginTestHarness:
             # Stop plugin with timeout to prevent hanging
             if hasattr(plugin_instance, "on_stop"):
                 try:
-                    async with asyncio.timeout(2.0):
+                    async with async_timeout.timeout(2.0):
                         await plugin_instance.on_stop()
                 except asyncio.TimeoutError:
                     logger.warning(f"Timeout stopping plugin {plugin_id}")
@@ -501,7 +503,7 @@ class PluginTestHarness:
 
             # Wait for tasks to complete cancellation with timeout
             try:
-                async with asyncio.timeout(3.0):
+                async with async_timeout.timeout(3.0):
                     await asyncio.gather(*all_tasks, return_exceptions=True)
             except asyncio.TimeoutError:
                 logger.warning("Timeout waiting for task cancellation")
