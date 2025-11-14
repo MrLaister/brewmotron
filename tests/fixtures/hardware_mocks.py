@@ -722,7 +722,7 @@ class MockLCDisplay:
         self.cursor_pos = (0, 0)
         self.cursor_visible = False
         self.blink_cursor = False
-        self.backlight = True
+        self._backlight_state = True
 
         logger.debug(
             f"MockLCDisplay initialized: {cols}x{rows} at address 0x{address:02X}"
@@ -769,8 +769,12 @@ class MockLCDisplay:
 
     def backlight_enabled(self, enabled: bool) -> None:
         """Enable/disable backlight."""
-        self.backlight = enabled
+        self._backlight_state = enabled
         logger.debug(f"LCD backlight: {enabled}")
+
+    def backlight(self, enabled: bool) -> None:
+        """Enable/disable backlight (alias for backlight_enabled)."""
+        self.backlight_enabled(enabled)
 
     def get_display_content(self) -> List[str]:
         """Get current display content as list of strings."""
@@ -786,7 +790,7 @@ class MockLCDisplay:
             "cursor_pos": self.cursor_pos,
             "cursor_visible": self.cursor_visible,
             "blink_cursor": self.blink_cursor,
-            "backlight": self.backlight,
+            "backlight": self._backlight_state,
         }
 
 
