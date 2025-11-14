@@ -11,6 +11,7 @@ import logging
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import async_timeout
 import pytest
 import pytest_asyncio
 
@@ -119,7 +120,7 @@ class ActorCoordinator:
         """Turn on actor with coordination logic."""
         try:
             # Use timeout to prevent deadlocks
-            async with asyncio.timeout(5.0):
+            async with async_timeout.timeout(5.0):
                 async with self.coordination_lock:
                     # Turn off currently active actor if different
                     if self.active_actor and self.active_actor != actor_id:
@@ -147,7 +148,7 @@ class ActorCoordinator:
         """Turn off specific actor."""
         try:
             # Use timeout to prevent deadlocks
-            async with asyncio.timeout(5.0):
+            async with async_timeout.timeout(5.0):
                 async with self.coordination_lock:
                     if actor_id in self.actors:
                         actor = self.actors[actor_id]
@@ -346,7 +347,7 @@ class TestActorCoordination:
 
         try:
             # Wait for all tasks to complete with timeout
-            async with asyncio.timeout(5.0):
+            async with async_timeout.timeout(5.0):
                 results = await asyncio.gather(*tasks, return_exceptions=True)
 
             # Check for any exceptions
@@ -405,7 +406,7 @@ class TestActorCoordination:
 
         # Rapid switching between actors with timeout protection
         try:
-            async with asyncio.timeout(10.0):  # Overall test timeout
+            async with async_timeout.timeout(10.0):  # Overall test timeout
                 for i in range(10):
                     actors = [mash_heater, boil_heater, pump]
                     selected_actor = actors[i % 3]
