@@ -116,7 +116,7 @@ jobs:
         pytest tests/unit/ \
           --verbose \
           --tb=short \
-          --cov=. \
+          --cov=tests/unit \
           --cov-report=xml \
           --cov-report=term-missing \
           --cov-fail-under=70 \
@@ -167,7 +167,7 @@ jobs:
         pytest tests/integration/ \
           --verbose \
           --tb=short \
-          --cov=. \
+          --cov=tests/integration \
           --cov-report=xml \
           --cov-report=term-missing \
           -m "integration"
