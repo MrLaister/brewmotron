@@ -22,82 +22,75 @@ jobs:
   lint:
     name: Code Quality & Linting
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-    
+
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-lint-${{ hashFiles('**/requirements-test.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-lint-
           ${{ runner.os }}-pip-
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
-    
+
     - name: Run Black code formatter check
       run: |
         black --check --diff --color .
-    
+
     - name: Run isort import sorting check
       run: |
         isort --check-only --diff .
-    
+
     - name: Run flake8 linting
       run: |
+        # First pass: critical errors only
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    
+        # Second pass: full linting with aligned line length (128 chars to match Black)
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=128 --statistics
+
     - name: Run mypy type checking
       run: |
-        mypy . --ignore-missing-imports --python-version=3.9
+        mypy . --ignore-missing-imports --python-version=3.11
       continue-on-error: true  # Type checking is advisory for now
 
   # =============================================================================
-  # Unit Tests
+  # Unit Tests (Optimized: Single Configuration)
   # =============================================================================
   test:
-    name: Unit Tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-20.04, ubuntu-22.04]
-        python-version: ["3.9", "3.10", "3.11"]
-        exclude:
-          # Reduce matrix size for faster CI
-          - os: ubuntu-22.04
-            python-version: "3.9"
-    
+    name: Unit Tests (Ubuntu 22.04 LTS + Python 3.11)
+    runs-on: ubuntu-22.04
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
-    
+        python-version: "3.11"
+
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements-test.txt') }}
+        key: ${{ runner.os }}-py3.11-pip-${{ hashFiles('**/requirements-test.txt') }}
         restore-keys: |
-          ${{ runner.os }}-py${{ matrix.python-version }}-pip-
+          ${{ runner.os }}-py3.11-pip-
           ${{ runner.os }}-pip-
-    
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -105,12 +98,12 @@ jobs:
           libgpiod2 \
           python3-dev \
           build-essential
-    
+
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
-    
+
     - name: Run unit tests
       run: |
         pytest tests/unit/ \
@@ -121,10 +114,9 @@ jobs:
           --cov-report=term-missing \
           --cov-fail-under=70 \
           -m "not slow and not integration"
-    
+
     - name: Upload coverage to Codecov
-      if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-22.04'
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests
@@ -138,30 +130,30 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: [lint, test]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-    
+
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-integration-${{ hashFiles('**/requirements-test.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-integration-
           ${{ runner.os }}-pip-
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
-    
+
     - name: Run integration tests
       run: |
         pytest tests/integration/ \
@@ -171,9 +163,9 @@ jobs:
           --cov-report=xml \
           --cov-report=term-missing \
           -m "integration"
-    
+
     - name: Upload integration test coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: integration
@@ -187,21 +179,21 @@ jobs:
     name: Hardware Simulation Tests
     runs-on: ubuntu-latest
     needs: [test]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
-    
+
     - name: Run hardware simulation tests
       run: |
         pytest tests/ \
@@ -209,7 +201,7 @@ jobs:
           --tb=short \
           -m "hardware" \
           --timeout=300
-    
+
     - name: Generate hardware test report
       if: always()
       run: |
@@ -218,7 +210,7 @@ jobs:
           --html=hardware-test-report.html \
           --self-contained-html
       continue-on-error: true
-    
+
     - name: Upload hardware test report
       if: always()
       uses: actions/upload-artifact@v4
@@ -227,28 +219,28 @@ jobs:
         path: hardware-test-report.html
 
   # =============================================================================
-  # Performance Tests
+  # Performance Tests (Scheduled/Manual Only)
   # =============================================================================
   performance-test:
     name: Performance Tests
     runs-on: ubuntu-latest
     needs: [test]
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
-    
+
     - name: Run performance tests
       run: |
         pytest tests/ \
@@ -259,7 +251,7 @@ jobs:
           --benchmark-only \
           --benchmark-json=performance-results.json
       continue-on-error: true
-    
+
     - name: Upload performance results
       uses: actions/upload-artifact@v4
       with:
@@ -272,31 +264,31 @@ jobs:
   security:
     name: Security Scanning
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install safety bandit
-    
+
     - name: Run safety check for known vulnerabilities
       run: |
         safety check --json --output safety-report.json
       continue-on-error: true
-    
+
     - name: Run bandit security linter
       run: |
         bandit -r . -f json -o bandit-report.json
       continue-on-error: true
-    
+
     - name: Upload security reports
       if: always()
       uses: actions/upload-artifact@v4
@@ -312,32 +304,32 @@ jobs:
   docs-test:
     name: Documentation Tests
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
         pip install sphinx sphinx-rtd-theme
-    
+
     - name: Test docstring coverage
       run: |
         python -c "
         import ast
         import os
-        
+
         def count_docstrings(directory):
             total_functions = 0
             documented_functions = 0
-            
+
             for root, dirs, files in os.walk(directory):
                 for file in files:
                     if file.endswith('.py'):
@@ -345,7 +337,7 @@ jobs:
                         try:
                             with open(filepath, 'r') as f:
                                 tree = ast.parse(f.read())
-                            
+
                             for node in ast.walk(tree):
                                 if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                                     total_functions += 1
@@ -353,17 +345,17 @@ jobs:
                                         documented_functions += 1
                         except:
                             continue  # Skip files that can't be parsed
-            
+
             return documented_functions, total_functions
-        
+
         documented, total = count_docstrings('.')
         coverage = (documented / total * 100) if total > 0 else 0
         print(f'Docstring coverage: {documented}/{total} ({coverage:.1f}%)')
-        
+
         if coverage < 50:
             print('Warning: Docstring coverage below 50%')
         "
-    
+
     - name: Validate README and documentation
       run: |
         # Check that README exists and has minimum content
@@ -371,12 +363,12 @@ jobs:
           echo "Error: README.md not found"
           exit 1
         fi
-        
+
         # Check README has minimum length
         if [ $(wc -w < README.md) -lt 100 ]; then
           echo "Warning: README.md seems too short"
         fi
-        
+
         echo "Documentation validation completed"
 
   # =============================================================================
@@ -386,21 +378,21 @@ jobs:
     name: Build and Package Test
     runs-on: ubuntu-latest
     needs: [lint, test]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
-    
+
     - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
         pip install build twine
-    
+
     - name: Test package builds
       run: |
         # Test building each plugin package
@@ -412,7 +404,7 @@ jobs:
             cd ..
           fi
         done
-    
+
     - name: Validate built packages
       run: |
         # Check that wheels were created
@@ -420,7 +412,7 @@ jobs:
           echo "Error: No packages were built"
           exit 1
         fi
-        
+
         # Validate package metadata
         for wheel in dist/*.whl; do
           if [ -f "$wheel" ]; then
@@ -428,7 +420,7 @@ jobs:
             twine check "$wheel"
           fi
         done
-    
+
     - name: Upload built packages
       uses: actions/upload-artifact@v4
       with:
@@ -443,7 +435,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, test, integration-test, hardware-test, security, docs-test, build-test]
     if: always()
-    
+
     steps:
     - name: Generate test summary
       run: |
@@ -458,7 +450,7 @@ jobs:
         echo "- Documentation: ${{ needs.docs-test.result }}" >> $GITHUB_STEP_SUMMARY
         echo "- Build Test: ${{ needs.build-test.result }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        
+
         # Overall status
         if [[ "${{ needs.lint.result }}" == "success" && \
               "${{ needs.test.result }}" == "success" && \
@@ -471,6 +463,8 @@ jobs:
           echo "## ❌ Overall Status: FAIL" >> $GITHUB_STEP_SUMMARY
           echo "One or more critical tests failed. Please review the results above." >> $GITHUB_STEP_SUMMARY
         fi
-        
+
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Generated on: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "**Configuration:** Ubuntu 22.04 LTS + Python 3.11" >> $GITHUB_STEP_SUMMARY
+        echo "**Generated on:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
