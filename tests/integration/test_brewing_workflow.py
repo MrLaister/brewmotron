@@ -58,12 +58,12 @@ class MockBrewingController:
             BrewingPhase.COOL_DOWN: 20.0,
         }
         self.phase_durations = {  # in seconds for testing
-            BrewingPhase.MASH_HEAT: 10,
-            BrewingPhase.MASH_HOLD: 15,
-            BrewingPhase.SPARGE: 8,
-            BrewingPhase.BOIL_HEAT: 10,
-            BrewingPhase.BOIL_HOLD: 12,
-            BrewingPhase.COOL_DOWN: 8,
+            BrewingPhase.MASH_HEAT: 5,
+            BrewingPhase.MASH_HOLD: 8,
+            BrewingPhase.SPARGE: 6,
+            BrewingPhase.BOIL_HEAT: 7,
+            BrewingPhase.BOIL_HOLD: 8,
+            BrewingPhase.COOL_DOWN: 6,
         }
         self.phase_history = []
         self._running = False
@@ -98,15 +98,35 @@ class MockBrewingController:
                 if not self._running:
                     break
 
-                await self._change_phase(phase)
+                try:
+                    await self._change_phase(phase)
 
-                if phase in self.phase_durations:
-                    await asyncio.sleep(self.phase_durations[phase])
+                    if phase in self.phase_durations:
+                        await asyncio.sleep(self.phase_durations[phase])
 
-                # Check if we should advance based on conditions
-                if not await self._should_advance_phase():
-                    # Wait a bit more if conditions not met
-                    await asyncio.sleep(2)
+                    # Check if we should advance based on conditions
+                    # Retry a few times if conditions not met, but still advance eventually
+                    max_retries = 2
+                    for retry in range(max_retries):
+                        if await self._should_advance_phase():
+                            break
+                        if retry < max_retries - 1:
+                            # Wait a bit more if conditions not met
+                            await asyncio.sleep(1)
+
+                except asyncio.CancelledError:
+                    # Propagate cancellation
+                    raise
+                except Exception as e:
+                    # Log error but continue with phase progression
+                    # This ensures the brewing process continues even if individual phases encounter errors
+                    import logging
+
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Error in brewing phase {phase.value}: {e}", exc_info=True)
+
+                    # Continue to next phase after brief delay
+                    await asyncio.sleep(0.5)
 
         except asyncio.CancelledError:
             pass
@@ -146,26 +166,25 @@ class MockBrewingController:
             await self._turn_off_all_actors()
 
         elif phase in [BrewingPhase.MASH_HEAT, BrewingPhase.MASH_HOLD]:
-            # Configure for mash heating
+            # Turn off all actors first, then configure for mash heating
+            await self._turn_off_all_actors()
             await self.cbpi.actor.on("mash_heater", 100)
-            await self.cbpi.actor.off("boil_heater")
-            await self.cbpi.actor.off("pump")
 
         elif phase == BrewingPhase.SPARGE:
-            # Configure for sparging
-            await self.cbpi.actor.off("mash_heater")
+            # Turn off all actors first, then configure for sparging
+            # Note: OneAtATime plugin manages heaters, so pump can run alongside heater
+            await self._turn_off_all_actors()
             await self.cbpi.actor.on("sparge_heater", 80)
             await self.cbpi.actor.on("pump", 60)
 
         elif phase in [BrewingPhase.BOIL_HEAT, BrewingPhase.BOIL_HOLD]:
-            # Configure for boiling
-            await self.cbpi.actor.off("mash_heater")
+            # Turn off all actors first, then configure for boiling
+            await self._turn_off_all_actors()
             await self.cbpi.actor.on("boil_heater", 100)
-            await self.cbpi.actor.off("pump")
 
         elif phase == BrewingPhase.COOL_DOWN:
-            # Turn off heating, turn on cooling
-            await self.cbpi.actor.off("boil_heater")
+            # Turn off all actors first, then turn on cooling
+            await self._turn_off_all_actors()
             await self.cbpi.actor.on("cooling_pump", 80)
 
         elif phase == BrewingPhase.FINISHED:
@@ -428,24 +447,20 @@ class TestBrewingWorkflow:
             BrewingPhase.MASH_HOLD in phases or BrewingPhase.SPARGE in phases
         ), "Should have progressed to mash hold or sparge phase"
 
-        # Verify actor coordination (only one active at a time)
-        active_actors = []
-        for actor_id in [
-            "mash_heater",
-            "boil_heater",
-            "sparge_heater",
-            "pump",
-            "cooling_pump",
-        ]:
+        # Verify heater coordination (OneAtATime ensures only one heater active at a time)
+        active_heaters = []
+        heaters = ["mash_heater", "boil_heater", "sparge_heater"]
+        for heater_id in heaters:
             try:
-                is_active = await harness.cbpi.actor.get_state(actor_id)
+                is_active = await harness.cbpi.actor.get_state(heater_id)
                 if is_active:
-                    active_actors.append(actor_id)
+                    active_heaters.append(heater_id)
             except Exception:
                 pass
 
-        # In OneAtATime system, should have at most one actor active
-        assert len(active_actors) <= 1, f"Too many actors active simultaneously: {active_actors}"
+        # In OneAtATime system, should have at most one heater active
+        # Note: Pumps and other non-heater actors can run alongside heaters
+        assert len(active_heaters) <= 1, f"Too many heaters active simultaneously: {active_heaters}"
 
         await brewing_controller.stop_brewing()
 
@@ -607,8 +622,9 @@ class TestBrewingWorkflow:
 
         harness.cbpi.sensor.get_value = failing_sensor
 
-        # Let system run with sensor failure
-        await asyncio.sleep(3)
+        # Let system run with sensor failure - need enough time for phase progression
+        # MASH_HEAT duration is 5s + advancement checks can add up to 2s = 7s
+        await asyncio.sleep(6)
 
         # System should continue operating despite sensor failure
         assert brewing_controller._running, "Brewing controller should still be running"
@@ -710,8 +726,8 @@ class TestBrewingWorkflow:
         await brewing_controller.start_brewing()
 
         # Wait for several phase transitions
-        # Need at least 26 seconds to complete MASH_HEAT(10s) + MASH_HOLD(15s) + buffer
-        await asyncio.sleep(27)
+        # Need at least 16 seconds to complete MASH_HEAT(5s) + MASH_HOLD(8s) + buffer
+        await asyncio.sleep(17)
 
         # Analyze phase timing
         phase_history = brewing_controller.phase_history
@@ -726,7 +742,7 @@ class TestBrewingWorkflow:
 
             # Each phase should have minimum duration (accounting for test timing)
             assert duration >= 1.0, f"Phase {previous_phase['phase'].value} too short: {duration}s"
-            assert duration <= 16.0, f"Phase {previous_phase['phase'].value} too long: {duration}s"
+            assert duration <= 11.0, f"Phase {previous_phase['phase'].value} too long: {duration}s"
 
         # Verify logical phase sequence
         phase_names = [entry["phase"].value for entry in phase_history]
