@@ -126,7 +126,8 @@ class ActorCoordinator:
                     if self.active_actor and self.active_actor != actor_id:
                         if self.active_actor in self.actors:
                             active_actor = self.actors[self.active_actor]
-                            # Call parent off() method directly to avoid re-acquiring lock
+                            # Call parent off() method directly to
+                            # avoid re-acquiring lock
                             await MockCBPiActorBase.off(active_actor)
                             self.active_actor = None
 

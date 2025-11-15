@@ -3,7 +3,10 @@ from setuptools import setup
 setup(
     name="cbpi4-NOR3",
     version="0.0.3",
-    description="CraftBeerPi Plugin to integrate a 3-input NOR function. Under development",
+    description=(
+        "CraftBeerPi Plugin to integrate a 3-input NOR function. "
+        "Under development"
+    ),
     author="Andrew Laister",
     author_email="brewmotron@andrewlaister.com",
     maintainer="Brewmotron Project",

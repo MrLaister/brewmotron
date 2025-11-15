@@ -340,7 +340,8 @@ class TestSensorDisplayIntegration:
 
     @pytest.mark.asyncio
     async def test_display_update_timing_coordination(self, integration_harness):
-        """Test that different displays update at appropriate rates without conflicts."""
+        """Test that different displays update at appropriate rates without
+        conflicts."""
         harness = integration_harness["harness"]
         mash_sensor = integration_harness["mash_sensor"]
         seg_display = integration_harness["seg_display"]

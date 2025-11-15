@@ -357,7 +357,8 @@ class TestLCDisplay:
                 config.props,  # Pass props to ensure config access
             )
 
-            # Verify address immediately after loading (on_start was already called by load_plugin)
+            # Verify address immediately after loading (on_start was
+            # already called by load_plugin)
             expected_addr = addr
             assert (
                 display.lcd_address == expected_addr

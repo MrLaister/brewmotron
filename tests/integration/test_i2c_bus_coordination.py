@@ -571,7 +571,8 @@ class TestI2CBusCoordination:
                 f"under contention"
             )
 
-            # Check for reasonable error rate (some errors expected under high contention)
+            # Check for reasonable error rate (some errors expected
+            # under high contention)
             error_count = len(
                 [h for h in device.access_history if "error" in h["operation"]]
             )

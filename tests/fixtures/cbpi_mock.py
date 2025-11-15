@@ -423,7 +423,8 @@ class PluginTestHarness:
             # Determine plugin type based on base class
             base_names = [base.__name__ for base in plugin_class.__bases__]
 
-            # Also check for classes that contain 'Extension' in their name (for mock classes)
+            # Also check for classes that contain 'Extension' in their
+            # name (for mock classes)
             has_extension_base = any(
                 "CBPiExtension" in name or "Extension" in name for name in base_names
             )

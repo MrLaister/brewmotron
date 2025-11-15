@@ -432,7 +432,10 @@ class TestBrewingWorkflow:
         # Verify phase progression
         assert (
             len(brewing_controller.phase_history) >= 3
-        ), f"Should have progressed through multiple phases, got {len(brewing_controller.phase_history)}"
+        ), (
+            f"Should have progressed through multiple phases, "
+            f"got {len(brewing_controller.phase_history)}"
+        )
 
         # Check that we progressed beyond initial phase
         phases = [entry["phase"] for entry in brewing_controller.phase_history]

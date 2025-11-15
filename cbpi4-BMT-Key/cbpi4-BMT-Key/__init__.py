@@ -43,7 +43,8 @@ except Exception as e:
 
 
 #    pass
-# TODO - Key states: (1) detect if OFF and output as an actor (2) Loads cleaning recipe (3) Unloads cleaning recipe (4) Disables high power outputs
+# TODO - Key states: (1) detect if OFF and output as an actor (2) Loads
+# cleaning recipe (3) Unloads cleaning recipe (4) Disables high power outputs
 class BMTKey(CBPiExtension):
     def __init__(self, cbpi):
         self.actors = []
@@ -103,7 +104,8 @@ class BMTKey(CBPiExtension):
         elif modeName == self.keyStates[3][0]:
             asyncio.create_task(self.disableHPActors())
             # TODO: Turn off 7Seg Screens & selected LEDs
-            # TODO: OPTIONAL - enable fermentation temperature and duration to be displayed on the 7seg displays alongside a toggle button press
+            # TODO: OPTIONAL - enable fermentation temperature and duration to
+            # be displayed on the 7seg displays alongside a toggle button press
             # TODO: Enable use of recipes, load screen 4
 
         return

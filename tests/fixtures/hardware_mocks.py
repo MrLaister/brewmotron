@@ -572,7 +572,8 @@ class MockTemperatureSensor:
         self._readings_history: List[SensorReading] = []
 
         logger.debug(
-            f"MockTemperatureSensor initialized: {sensor_type}, base={base_temperature}°C"
+            f"MockTemperatureSensor initialized: {sensor_type}, "
+            f"base={base_temperature}°C"
         )
 
     def set_target_temperature(self, temperature: float) -> None:
@@ -620,7 +621,8 @@ class MockTemperatureSensor:
             self._readings_history = self._readings_history[-1000:]
 
         logger.debug(
-            f"Temperature reading: {measured_temp:.2f}°C (target: {self._target_temperature:.2f}°C)"
+            f"Temperature reading: {measured_temp:.2f}°C "
+            f"(target: {self._target_temperature:.2f}°C)"
         )
         return measured_temp
 

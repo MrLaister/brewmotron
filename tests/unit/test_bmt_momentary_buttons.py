@@ -474,7 +474,8 @@ class TestBMTMomentaryButtons:
                                 targetTemp = str(step["props"]["Temp"])
                                 kettle_id = str(step["props"]["Kettle"])
                                 self.step_detection_calls.append(
-                                    f"Found active step: {targetTemp}°C, kettle: {kettle_id}"
+                                    f"Found active step: {targetTemp}°C, "
+                                    f"kettle: {kettle_id}"
                                 )
                                 return [targetTemp, kettle_id]
                     elif self._scenario == 2:

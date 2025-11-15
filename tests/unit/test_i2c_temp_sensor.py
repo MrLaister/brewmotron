@@ -169,7 +169,8 @@ class TestI2CTempSensor:
                 self.running = False
 
             def convert_resistance_to_temperature(self, resistance):
-                """Convert resistance to temperature using Callendar-Van Dusen equation."""
+                """Convert resistance to temperature using Callendar-Van
+                Dusen equation."""
                 if self.probe_type not in self.calibration_data:
                     return 0.0
 

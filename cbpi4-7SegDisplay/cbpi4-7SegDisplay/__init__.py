@@ -22,7 +22,8 @@ from smbus import SMBus
 # GPIO.setmode(GPIO.BCM)
 
 # pipy related installation of plugin:
-# goto folder where CBPI4 is installed (at least the folder which is containing the config folder)
+# goto folder where CBPI4 is installed (at least the folder which is
+# containing the config folder)
 # sudo pip3 install cbpi4-7SegDisplay
 # sudo cbpi add cbpi4-7SegDisplay
 
@@ -307,7 +308,11 @@ class SSDisplay(CBPiExtension):
     #     so = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     #     try:
     #         ip_addr = socket.inet_ntoa(
-    #             fcntl.ioctl(so.fileno(), 0x8915, struct.pack('256s', bytes(interface.encode())[:15]))[20:24])
+    #             fcntl.ioctl(
+    #                 so.fileno(),
+    #                 0x8915,
+    #                 struct.pack("256s", bytes(interface.encode())[:15]),
+    #             )[20:24])
     #     except Exception as e:
     #         logger.warning('no ip found')
     #         if DEBUG: logger.warning(e)
@@ -341,8 +346,8 @@ class SSDisplay(CBPiExtension):
                     settingsName,
                     3,
                     ConfigType.SELECT,
-                    "Display update time in seconds for all displays. CBPi reboot not required"
-                    "required",
+                    "Display update time in seconds for all displays. "
+                    "CBPi reboot not required",
                     [
                         {"label": "1s", "value": 1},
                         {"label": "2s", "value": 2},
@@ -416,7 +421,8 @@ class SSDisplay(CBPiExtension):
                     settingsName,
                     "",
                     ConfigType.SELECT,
-                    "select the temperature Type (Actual / Target) to be displayed, consult readme, "
+                    "select the temperature Type (Actual / Target) to be "
+                    "displayed, consult readme, "
                     "NO! CBPi reboot required",
                     [
                         {"label": "---", "value": None},
