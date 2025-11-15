@@ -14,7 +14,7 @@ import pytest_asyncio
 from tests.fixtures.cbpi_mock import PluginTestHarness
 
 # Mark all tests in this module
-pytestmark = [pytest.mark.real_plugin, pytest.mark.requires_hardware_mock]
+pytestmark = [pytest.mark.manual, pytest.mark.real_plugin, pytest.mark.requires_hardware_mock]
 
 
 @pytest.fixture

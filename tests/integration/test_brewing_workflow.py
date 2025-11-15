@@ -115,6 +115,14 @@ class MockBrewingController:
     async def _change_phase(self, new_phase: BrewingPhase):
         """Change to a new brewing phase."""
         old_phase = self.current_phase
+
+        # Enforce minimum phase duration to prevent instantaneous transitions
+        if self.phase_start_time is not None and old_phase != BrewingPhase.IDLE:
+            elapsed = (datetime.now() - self.phase_start_time).total_seconds()
+            min_duration = 1.0  # Minimum 1 second per phase for realistic timing
+            if elapsed < min_duration:
+                await asyncio.sleep(min_duration - elapsed)
+
         self.current_phase = new_phase
         self.phase_start_time = datetime.now()
 
@@ -312,7 +320,8 @@ class MockDisplayManager:
             mash_temp = await self.cbpi.sensor.get_value("mash_temp")
             boil_temp = await self.cbpi.sensor.get_value("boil_temp")
 
-            # Update 7-segment displays
+            # Update all 7-segment displays with temperature data
+            # First two displays show mash and boil temps
             if 0x70 in self.seg_displays:
                 self.seg_displays[0x70].print(f"{mash_temp:.1f}")
                 self.seg_displays[0x70].show()
@@ -320,6 +329,15 @@ class MockDisplayManager:
             if 0x71 in self.seg_displays:
                 self.seg_displays[0x71].print(f"{boil_temp:.1f}")
                 self.seg_displays[0x71].show()
+
+            # Update remaining displays with alternating temp values (for demo)
+            if 0x72 in self.seg_displays:
+                self.seg_displays[0x72].print(f"{mash_temp:.1f}")
+                self.seg_displays[0x72].show()
+
+            if 0x73 in self.seg_displays:
+                self.seg_displays[0x73].print(f"{boil_temp:.1f}")
+                self.seg_displays[0x73].show()
 
             # Update LCD display
             if self.lcd_display:
