@@ -52,6 +52,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "hardware: mark test as requiring hardware simulation")
     config.addinivalue_line("markers", "slow: mark test as slow running")
     config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "manual: mark test as requiring manual execution (skipped in CI)")
     config.addinivalue_line("markers", "i2c: mark test as requiring I2C hardware")
     config.addinivalue_line("markers", "gpio: mark test as requiring GPIO hardware")
     config.addinivalue_line("markers", "network: mark test as requiring network connectivity")
