@@ -15,11 +15,7 @@ import pytest_asyncio
 
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
-from tests.fixtures.hardware_mocks import (
-    HardwareTestHarness,
-    MockSMBus,
-    MockTemperatureSensor,
-)
+from tests.fixtures.hardware_mocks import HardwareTestHarness, MockSMBus, MockTemperatureSensor
 from tests.fixtures.test_data import PluginConfigFactory
 
 # Mark all tests in this module as hardware and I2C tests

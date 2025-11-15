@@ -14,11 +14,11 @@ import pytest_asyncio
 
 # Import our test infrastructure
 from tests.fixtures.cbpi_mock import (
-    PluginTestHarness,
     MockCBPiActorBase,
-    MockCBPiSensorBase,
     MockCBPiExtensionBase,
+    MockCBPiSensorBase,
     MockProperty,
+    PluginTestHarness,
 )
 from tests.fixtures.hardware_mocks import (
     HardwareTestHarness,
@@ -28,7 +28,6 @@ from tests.fixtures.hardware_mocks import (
     MockSMBus,
     MockTemperatureSensor,
 )
-
 
 # =============================================================================
 # Global Module Mocking (before any plugins are imported)
@@ -118,8 +117,8 @@ def mock_rpi_gpio():
     from tests.fixtures.cbpi_mock import (
         MockCBPi,
         MockCBPiActorBase,
-        MockCBPiSensorBase,
         MockCBPiExtensionBase,
+        MockCBPiSensorBase,
         MockProperty,
     )
 

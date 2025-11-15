@@ -15,12 +15,7 @@ import pytest
 import pytest_asyncio
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import (
-    MockCBPi,
-    MockCBPiActorBase,
-    MockCBPiSensorBase,
-    PluginTestHarness,
-)
+from tests.fixtures.cbpi_mock import MockCBPi, MockCBPiActorBase, MockCBPiSensorBase, PluginTestHarness
 from tests.fixtures.hardware_mocks import (
     Mock7SegmentDisplay,
     MockLCDisplay,

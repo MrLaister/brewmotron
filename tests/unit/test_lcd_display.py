@@ -545,9 +545,7 @@ class TestLCDisplayEdgeCases:
                         try:
                             # Simulate connection attempt
                             if self.connection_attempts > 3:
-                                from tests.fixtures.hardware_mocks import (
-                                    MockLCDisplay as HardwareMockLCDisplay,
-                                )
+                                from tests.fixtures.hardware_mocks import MockLCDisplay as HardwareMockLCDisplay
 
                                 self.lcd = HardwareMockLCDisplay(address=0x27, cols=20, rows=4)
                                 break  # Exit loop once connected
