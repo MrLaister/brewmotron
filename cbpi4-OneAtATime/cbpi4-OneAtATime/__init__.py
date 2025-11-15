@@ -91,9 +91,7 @@ class OneAtATime(CBPiActor):
             self.actors = []
             for actor in actors:
                 if actor["type"] == actorPluginType and actor["props"][self.group] == self.props[self.group]:
-                    logger.info(
-                        "appending actor list with " + actor["props"]["actor"] + " with controller ID " + actor["id"]
-                    )
+                    logger.info("appending actor list with " + actor["props"]["actor"] + " with controller ID " + actor["id"])
                     self.actors.append(actor["id"])
                     self.actors.append(actor["props"]["actor"])
         except Exception as e:

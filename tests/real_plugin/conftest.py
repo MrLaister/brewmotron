@@ -114,13 +114,7 @@ def mock_rpi_gpio():
     mock_gpio = MockRPiGPIO()
 
     # Mock cbpi.api module which plugins import
-    from tests.fixtures.cbpi_mock import (
-        MockCBPi,
-        MockCBPiActorBase,
-        MockCBPiExtensionBase,
-        MockCBPiSensorBase,
-        MockProperty,
-    )
+    from tests.fixtures.cbpi_mock import MockCBPi, MockCBPiActorBase, MockCBPiExtensionBase, MockCBPiSensorBase, MockProperty
 
     mock_cbpi_api = mock.MagicMock()
     # Add the common classes that plugins use

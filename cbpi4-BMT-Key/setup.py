@@ -4,8 +4,7 @@ setup(
     name="cbpi4-BMT-Key",
     version="0.0.1",
     description=(
-        "CraftBeerPi Plugin for BrewMoTron Key Mode function. "
-        "Enables/disables cbpi4-OneAtATime Actors based on key state"
+        "CraftBeerPi Plugin for BrewMoTron Key Mode function. " "Enables/disables cbpi4-OneAtATime Actors based on key state"
     ),
     author="Andrew Laister",
     author_email="brewmotron@andrewlaister.com",

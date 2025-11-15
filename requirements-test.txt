@@ -31,6 +31,7 @@ fake-rpi>=0.7.0
 # Development and quality tools
 black==24.2.0
 flake8>=6.0.0
+flake8-black>=0.3.6  # Black compatibility plugin for flake8
 mypy>=1.0.0
 isort==5.6.4
 

@@ -718,9 +718,7 @@ class TestBrewingWorkflow:
 
         # Should not have repeated phases (except potentially hold phases)
         non_hold_phases = [p for p in phase_names if "hold" not in p]
-        assert len(non_hold_phases) == len(
-            set(non_hold_phases)
-        ), f"Should not repeat non-hold phases: {non_hold_phases}"
+        assert len(non_hold_phases) == len(set(non_hold_phases)), f"Should not repeat non-hold phases: {non_hold_phases}"
 
         await brewing_controller.stop_brewing()
 

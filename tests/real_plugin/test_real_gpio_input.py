@@ -156,13 +156,9 @@ class TestRealGPIOInput:
         - Pump on GPIO 20
         """
         # Create three actors
-        mash_heater = await plugin_harness.load_plugin(
-            real_gpio_input_class, "mash_heater", {"GPIO": "18", "Inverted": "No"}
-        )
+        mash_heater = await plugin_harness.load_plugin(real_gpio_input_class, "mash_heater", {"GPIO": "18", "Inverted": "No"})
 
-        boil_heater = await plugin_harness.load_plugin(
-            real_gpio_input_class, "boil_heater", {"GPIO": "19", "Inverted": "No"}
-        )
+        boil_heater = await plugin_harness.load_plugin(real_gpio_input_class, "boil_heater", {"GPIO": "19", "Inverted": "No"})
 
         pump = await plugin_harness.load_plugin(real_gpio_input_class, "pump", {"GPIO": "20", "Inverted": "No"})
 

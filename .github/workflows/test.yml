@@ -58,8 +58,8 @@ jobs:
       run: |
         # First pass: critical errors only
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Second pass: full linting with aligned line length (128 chars to match Black)
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=128 --statistics
+        # Second pass: full linting with Black-compatible configuration
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=128 --extend-ignore=E203,E501,W503,W504 --statistics
 
     - name: Run mypy type checking
       run: |

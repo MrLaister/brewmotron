@@ -307,17 +307,11 @@ class TestOneAtATime:
                 return 0
 
         # Create actors
-        actor1 = await plugin_harness.load_plugin(
-            MockOneAtATime, "actor1", {"GPIO": 18, "CoordinationGroup": "test_group"}
-        )
+        actor1 = await plugin_harness.load_plugin(MockOneAtATime, "actor1", {"GPIO": 18, "CoordinationGroup": "test_group"})
 
-        actor2 = await plugin_harness.load_plugin(
-            MockOneAtATime, "actor2", {"GPIO": 19, "CoordinationGroup": "test_group"}
-        )
+        actor2 = await plugin_harness.load_plugin(MockOneAtATime, "actor2", {"GPIO": 19, "CoordinationGroup": "test_group"})
 
-        actor3 = await plugin_harness.load_plugin(
-            MockOneAtATime, "actor3", {"GPIO": 20, "CoordinationGroup": "test_group"}
-        )
+        actor3 = await plugin_harness.load_plugin(MockOneAtATime, "actor3", {"GPIO": 20, "CoordinationGroup": "test_group"})
 
         # Turn on first actor
         await actor1.on()
@@ -395,9 +389,7 @@ class TestOneAtATime:
                     group_state["active_actor"] = None
 
         # Create actors in different groups
-        heater1 = await plugin_harness.load_plugin(
-            MockOneAtATime, "heater1", {"GPIO": 18, "CoordinationGroup": "heaters"}
-        )
+        heater1 = await plugin_harness.load_plugin(MockOneAtATime, "heater1", {"GPIO": 18, "CoordinationGroup": "heaters"})
 
         pump1 = await plugin_harness.load_plugin(MockOneAtATime, "pump1", {"GPIO": 19, "CoordinationGroup": "pumps"})
 

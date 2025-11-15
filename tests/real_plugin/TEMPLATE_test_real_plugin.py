@@ -165,9 +165,7 @@ class TestRealYourPlugin:
             }
         )
 
-        extension = await plugin_harness.load_plugin(
-            real_plugin_class, "test_extension", {}  # Extensions don't use props
-        )
+        extension = await plugin_harness.load_plugin(real_plugin_class, "test_extension", {})  # Extensions don't use props
 
         # Let background tasks run
         await asyncio.sleep(1.0)

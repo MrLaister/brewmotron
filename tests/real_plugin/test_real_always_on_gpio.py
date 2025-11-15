@@ -163,14 +163,10 @@ class TestRealAlwaysONGPIO:
         (e.g., cooling fan, indicator LED, etc.)
         """
         # Load first instance on GPIO 18
-        plugin1 = await plugin_harness.load_plugin(
-            real_always_on_gpio_class, "always_on_1", {"GPIO": "18", "Inverted": "No"}
-        )
+        plugin1 = await plugin_harness.load_plugin(real_always_on_gpio_class, "always_on_1", {"GPIO": "18", "Inverted": "No"})
 
         # Load second instance on GPIO 19
-        plugin2 = await plugin_harness.load_plugin(
-            real_always_on_gpio_class, "always_on_2", {"GPIO": "19", "Inverted": "Yes"}
-        )
+        plugin2 = await plugin_harness.load_plugin(real_always_on_gpio_class, "always_on_2", {"GPIO": "19", "Inverted": "Yes"})
 
         await asyncio.sleep(0.1)
 

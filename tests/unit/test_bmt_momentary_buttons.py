@@ -457,9 +457,7 @@ class TestBMTMomentaryButtons:
                             if step["status"] == "A":
                                 targetTemp = str(step["props"]["Temp"])
                                 kettle_id = str(step["props"]["Kettle"])
-                                self.step_detection_calls.append(
-                                    f"Found active step: {targetTemp}°C, " f"kettle: {kettle_id}"
-                                )
+                                self.step_detection_calls.append(f"Found active step: {targetTemp}°C, " f"kettle: {kettle_id}")
                                 return [targetTemp, kettle_id]
                     elif self._scenario == 2:
                         # Scenario: No active steps

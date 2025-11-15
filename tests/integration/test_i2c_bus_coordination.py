@@ -518,9 +518,7 @@ class TestI2CBusCoordination:
 
         # Check that all devices are still operating
         for device_name, device in devices.items():
-            assert device.transaction_count > 10, (
-                f"{device_name} should have high transaction count " f"under contention"
-            )
+            assert device.transaction_count > 10, f"{device_name} should have high transaction count " f"under contention"
 
             # Check for reasonable error rate (some errors expected
             # under high contention)

@@ -253,9 +253,7 @@ class LCDisplay(CBPiExtension):
 
             # step3 target temp and current temp in one line
             try:
-                line3 = ("Set|Act:%4.0f°%5.1f%s%s" % (float(kettle_target_temp), float(sensor_value), "°", lcd_unit))[
-                    :20
-                ]
+                line3 = ("Set|Act:%4.0f°%5.1f%s%s" % (float(kettle_target_temp), float(sensor_value), "°", lcd_unit))[:20]
             except Exception as e:
                 logger.error(e)
                 line3 = ("Set|Act:%4.0f°%s%s%s" % (float(kettle_target_temp), " n.a ", "°", lcd_unit))[:20]

@@ -407,9 +407,7 @@ class TestGPIOResourceManagement:
             resource_manager.release_pin(pins[i], plugin.id)
 
             # Verify pin is released
-            assert (
-                resource_manager.get_pin_allocation(pins[i]) is None
-            ), f"Pin {pins[i]} should be released after plugin stop"
+            assert resource_manager.get_pin_allocation(pins[i]) is None, f"Pin {pins[i]} should be released after plugin stop"
 
         # Verify all pins are cleaned up
         final_allocated = resource_manager.get_allocated_pins()
