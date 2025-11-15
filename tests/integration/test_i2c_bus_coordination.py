@@ -490,10 +490,16 @@ class TestI2CBusCoordination:
 
         assert (
             abs(display_rate - expected_display_rate) < 0.5
-        ), f"Display rate should be ~{expected_display_rate:.1f}/s, got {display_rate:.1f}/s"
+        ), (
+            f"Display rate should be ~{expected_display_rate:.1f}/s, "
+            f"got {display_rate:.1f}/s"
+        )
         assert (
             abs(sensor_rate - expected_sensor_rate) < 0.3
-        ), f"Sensor rate should be ~{expected_sensor_rate:.1f}/s, got {sensor_rate:.1f}/s"
+        ), (
+            f"Sensor rate should be ~{expected_sensor_rate:.1f}/s, "
+            f"got {sensor_rate:.1f}/s"
+        )
 
         await mash_display.stop()
         await temp_sensor.stop()
@@ -560,7 +566,10 @@ class TestI2CBusCoordination:
         for device_name, device in devices.items():
             assert (
                 device.transaction_count > 10
-            ), f"{device_name} should have high transaction count under contention"
+            ), (
+                f"{device_name} should have high transaction count "
+                f"under contention"
+            )
 
             # Check for reasonable error rate (some errors expected under high contention)
             error_count = len(
@@ -620,7 +629,10 @@ class TestI2CBusCoordination:
         latest_display_value = display_updates[-1]["data"]
         assert (
             abs(latest_display_value - sensor_value) < 1.0
-        ), f"Display should show sensor value {sensor_value:.1f}, got {latest_display_value:.1f}"
+        ), (
+            f"Display should show sensor value {sensor_value:.1f}, "
+            f"got {latest_display_value:.1f}"
+        )
 
         # Check LCD display updates
         lcd_updates = [

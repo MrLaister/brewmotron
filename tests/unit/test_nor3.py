@@ -132,7 +132,7 @@ class TestNOR3:
         assert plugin.inverted == False
         assert plugin.running == True
 
-        # Initial state should be False (inputs are False, NOR result is True, but actor state is False)
+        # Initial state False (inputs False, NOR True, actor False)
         assert plugin.state == False
 
     @pytest.mark.asyncio
@@ -452,7 +452,7 @@ class TestNOR3EdgeCases:
             async def on_start(self):
                 self.running = True
                 mock_gpio.setup(self.gpio, mock_gpio.OUT)
-                # With no inputs, NOR3 result should be True (NOT(False OR False OR False) = True)
+                # NOR3 result True with all inputs False
                 self.state = True
                 mock_gpio.output(self.gpio, mock_gpio.HIGH)
 
