@@ -199,14 +199,14 @@ jobs:
         pytest tests/ \
           --verbose \
           --tb=short \
-          -m "hardware" \
+          -m "hardware and not manual" \
           --timeout=300
 
     - name: Generate hardware test report
       if: always()
       run: |
         pytest tests/ \
-          -m "hardware" \
+          -m "hardware and not manual" \
           --html=hardware-test-report.html \
           --self-contained-html
       continue-on-error: true

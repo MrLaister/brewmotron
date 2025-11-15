@@ -12,11 +12,11 @@ echo ""
 export PYTHONUNBUFFERED=1
 export PYTHONDONTWRITEBYTECODE=1
 
-# Run hardware simulation tests
+# Run hardware simulation tests (exclude manual tests requiring real plugins)
 python3 -m pytest tests/ \
     --verbose \
     --tb=short \
-    -m "hardware" \
+    -m "hardware and not manual" \
     --timeout=300
 
 # Generate HTML report (optional)
@@ -24,7 +24,7 @@ if [ "$1" == "--report" ]; then
     echo ""
     echo "Generating HTML report..."
     python3 -m pytest tests/ \
-        -m "hardware" \
+        -m "hardware and not manual" \
         --html=hardware-test-report.html \
         --self-contained-html || true
     echo "Report saved to: hardware-test-report.html"
