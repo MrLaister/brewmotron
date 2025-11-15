@@ -348,23 +348,24 @@ class TestSensorDisplayIntegration:
         original_seg_update = seg_display.update_displays
         original_lcd_update = lcd_display.update_display
 
-        async def track_seg_updates():
-            async for update in self._track_updates(original_seg_update, seg_updates):
-                pass
-
-        async def track_lcd_updates():
-            async for update in self._track_updates(original_lcd_update, lcd_updates):
-                pass
-
-        # Start both update loops
-        seg_task = asyncio.create_task(track_seg_updates())
-        lcd_task = asyncio.create_task(track_lcd_updates())
+        # Start both update tracking tasks
+        seg_task = asyncio.create_task(self._track_updates(original_seg_update, seg_updates))
+        lcd_task = asyncio.create_task(self._track_updates(original_lcd_update, lcd_updates))
 
         # Run for test period
         await asyncio.sleep(6)
 
+        # Cancel tasks and wait for them to finish
         seg_task.cancel()
         lcd_task.cancel()
+        try:
+            await seg_task
+        except asyncio.CancelledError:
+            pass
+        try:
+            await lcd_task
+        except asyncio.CancelledError:
+            pass
 
         # Verify update rates are reasonable
         # 7-segment displays should update more frequently (0.5s interval)

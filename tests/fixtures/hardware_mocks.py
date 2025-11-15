@@ -531,7 +531,9 @@ class MockSMBus:
 class MockTemperatureSensor:
     """Realistic temperature sensor simulation."""
 
-    def __init__(self, base_temperature: float = 20.0, sensor_type: str = "DS18B20"):
+    def __init__(
+        self, base_temperature: float = 20.0, sensor_type: str = "DS18B20", response_time: float = 0.1, fast_mode: bool = True
+    ):
         self.base_temperature = base_temperature
         self.sensor_type = sensor_type
         self.current_temperature = base_temperature
@@ -541,14 +543,18 @@ class MockTemperatureSensor:
         self.resolution = 0.0625  # °C (12-bit)
         self.noise_level = 0.1  # °C RMS
         self.drift_rate = 0.01  # °C per hour
-        self.response_time = 0.75  # seconds (63% response)
+        # Response time: 0.1s for fast tests, 0.75s for realistic simulation
+        self.response_time = response_time if not fast_mode else 0.1  # seconds (63% response)
 
         # Internal state
         self._target_temperature = base_temperature
         self._last_update = datetime.now()
         self._readings_history: List[SensorReading] = []
 
-        logger.debug(f"MockTemperatureSensor initialized: {sensor_type}, " f"base={base_temperature}°C")
+        logger.debug(
+            f"MockTemperatureSensor initialized: {sensor_type}, "
+            f"base={base_temperature}°C, response_time={self.response_time}s"
+        )
 
     def set_target_temperature(self, temperature: float) -> None:
         """Set target temperature for simulation."""
@@ -648,6 +654,9 @@ class Mock7SegmentDisplay:
 
     def print(self, value: Union[str, int, float]) -> None:
         """Print value to display."""
+        # Clear buffer first
+        self.display_buffer = [0, 0, 0, 0]
+
         if isinstance(value, (int, float)):
             # Convert number to display format
             str_value = f"{value:4.1f}" if isinstance(value, float) else f"{value:4d}"
@@ -655,15 +664,17 @@ class Mock7SegmentDisplay:
             str_value = str(value)
 
         # Convert to segment codes (simplified)
-        for i, char in enumerate(str_value[:4]):
+        digit_index = 0
+        for i, char in enumerate(str_value.strip()[:4]):
             if char.isdigit():
-                self.display_buffer[i] = int(char)
+                self.display_buffer[digit_index] = int(char)
+                digit_index += 1
             elif char == ".":
                 # Set decimal point on previous digit
-                if i > 0:
-                    self.display_buffer[i - 1] |= 0x80
+                if digit_index > 0:
+                    self.display_buffer[digit_index - 1] |= 0x80
 
-        logger.debug(f"7-seg display shows: {str_value}")
+        logger.debug(f"7-seg display shows: {str_value} → buffer: {self.display_buffer}")
 
     def show(self) -> None:
         """Update display (in real hardware, sends data over I2C)."""
