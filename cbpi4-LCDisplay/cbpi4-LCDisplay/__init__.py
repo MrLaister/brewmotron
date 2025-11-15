@@ -318,10 +318,10 @@ class LCDisplay(CBPiExtension):
         lcd.cursor_pos = (0, 0)
         lcd.write_string(line1.ljust(20))
         lcd.cursor_pos = (0, 19)
-        # line 321 - 342 this is all about showing beerglass if heater of kettle is on.
-        # blinking in singlemode, constant in multimode
-        # blinking in single mode indicates that the instance is still running even if temperature is not
-        # changing for a while
+        # Lines 321-342: show beerglass if heater is on
+        # Blink in single mode, constant in multi mode
+        # Single mode blinking indicates instance running (even if temp
+        # not changing)
         # logger.info("Blinking multidisplay is in status: {}".format(multidisplay))
         if multidisplay is False:
             global BLINK

@@ -118,7 +118,9 @@ class BMT_MomentaryButton(CBPiActor):
             )
             self.state = False
             asyncio.create_task(self.off())
-        # print(["input GPIO", gpio, "Output Actor", self.props.get("LinkedActor",None), self.id, "State:", self.state, self.props.get("Inverted")])
+        # print(["input GPIO", gpio, "Output Actor",
+        # self.props.get("LinkedActor"), self.id, "State:", self.state,
+        # self.props.get("Inverted")])
         return self.state
 
     async def on(self, power=None):
