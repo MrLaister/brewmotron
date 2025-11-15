@@ -53,20 +53,21 @@ from RPLCD.i2c import CharLCD
 logger = logging.getLogger(__name__)
 DEBUG = False  # turn True to show (much) more debug info in app.log
 BLINK = (
-    False  # start value for blinking the beerglass during heating only for single mode
+    False  # blinking beerglass during heating (single mode)
 )
 global lcd
 # beerglass symbol
 bierkrug = (0b11100, 0b00000, 0b11100, 0b11111, 0b11101, 0b11101, 0b11111, 0b11100)
-# cooler symbol should look like snowflake but is instead a star. I use 3 of them like in refrigerators
+# cooler symbol (looks like star, use 3 in fridges instead of
+# snowflake)
 cool = (0b00100, 0b10101, 0b01110, 0b11111, 0b01110, 0b10101, 0b00100, 0b00000)
-# Ä symbol because in A00 LCD there is no big Ä only small ä- If you use A02 LCD this is not necessary.
+# Ä symbol (A00 LCD has only small ä; not needed for A02)
 awithdots = (0b10001, 0b01110, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b00000)
-# Ö symbol because in A00 LCD there is no big Ö only small ö- If you use A02 LCD this is not necessary.
+# Ö symbol (A00 LCD has only small ö; not needed for A02)
 owithdots = (0b10001, 0b01110, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110, 0b00000)
-# Ü symbol because in A00 LCD there is no big Ü only small ü- If you use A02 LCD this is not necessary.
+# Ü symbol (A00 LCD has only small ü; not needed for A02)
 uwithdots = (0b01010, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110, 0b00000)
-# ß symbol because in A00 LCD there is no ß If you use A02 LCD this is not necessary.
+# ß symbol (A00 LCD has no ß; not needed for A02)
 esszett = (0b00000, 0b00000, 0b11100, 0b10010, 0b10100, 0b10010, 0b11100, 0b10000)
 
 
@@ -111,9 +112,9 @@ class LCDisplay(CBPiExtension):
                     "LCDisplay - Error: LCD object not set or wrong LCD address or LCD Module not "
                     "properly connected or LCD module is defect: {}".format(e)
                 )
-            # self.cbpi.notify('LCDisplay:', 'LCD Address is wrong. You have to choose a different LCD Address. Key in '
-            #                               'at Raspi prompt: sudo i2cdetect -y 1 or sudo i2cdetect -y 0',
-            #                 NotificationType.ERROR)
+            # TODO: self.cbpi.notify with LCD Address error
+            # self.cbpi.notify('LCDisplay:', 'LCD Address is wrong.',
+            # NotificationType.ERROR)
         pass
 
         refresh = await self.set_lcd_refresh()
@@ -133,7 +134,8 @@ class LCDisplay(CBPiExtension):
             "LCDisplay - LCD sensor_for_sensor_mode: %s" % sensor_for_sensor_mode
         )
 
-        # *********************************************************************************************************
+        # ************************************************************
+        # ************************************************************
         while True:
             # this is the main code repeated constantly
             display_mode = await self.set_lcd_display_mode()
@@ -152,7 +154,8 @@ class LCDisplay(CBPiExtension):
                 await self.show_standby()
             pass
         pass
-        # *********************************************************************************************************
+        # ************************************************************
+        # ************************************************************
 
     async def show_standby(self):
 

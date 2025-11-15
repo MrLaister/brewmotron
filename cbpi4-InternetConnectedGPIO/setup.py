@@ -3,7 +3,10 @@ from setuptools import setup
 setup(
     name="cbpi4-InternetConnectedGPIO",
     version="0.0.1",
-    description="CraftBeerPi4 Plugin to set the GPIO state based on if it can see the internet - e.g. Wi-Fi LED",
+    description=(
+        "CraftBeerPi4 Plugin to set GPIO based on internet "
+        "connectivity - e.g. Wi-Fi LED"
+    ),
     author="Andrew Laister",
     author_email="brewmotron@andrewlaister.com",
     maintainer="Brewmotron Project",

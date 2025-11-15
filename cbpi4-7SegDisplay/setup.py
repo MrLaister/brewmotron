@@ -10,7 +10,10 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 setup(
     name="cbpi4-7SegDisplay",
     version="1.0.1",
-    description="CraftBeerPi4 7 Segment Display Plugin used by Brewmotron but can be used for other systems",
+    description=(
+        "CraftBeerPi4 7 Segment Display Plugin for Brewmotron; "
+        "can be used for other brewing systems"
+    ),
     author="Andrew Laister",
     author_email="brewmotron@andrewlaister.com",
     maintainer="Brewmotron Project",
