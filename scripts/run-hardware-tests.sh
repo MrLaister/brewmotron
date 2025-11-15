@@ -13,7 +13,7 @@ export PYTHONUNBUFFERED=1
 export PYTHONDONTWRITEBYTECODE=1
 
 # Run hardware simulation tests
-pytest tests/ \
+python3 -m pytest tests/ \
     --verbose \
     --tb=short \
     -m "hardware" \
@@ -23,7 +23,7 @@ pytest tests/ \
 if [ "$1" == "--report" ]; then
     echo ""
     echo "Generating HTML report..."
-    pytest tests/ \
+    python3 -m pytest tests/ \
         -m "hardware" \
         --html=hardware-test-report.html \
         --self-contained-html || true

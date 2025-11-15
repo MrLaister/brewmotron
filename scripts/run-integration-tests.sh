@@ -13,7 +13,7 @@ export PYTHONUNBUFFERED=1
 export PYTHONDONTWRITEBYTECODE=1
 
 # Run integration tests
-pytest tests/integration/ \
+python3 -m pytest tests/integration/ \
     --verbose \
     --tb=short \
     --cov=tests/integration \

@@ -13,7 +13,7 @@ export PYTHONUNBUFFERED=1
 export PYTHONDONTWRITEBYTECODE=1
 
 # Run unit tests with coverage
-pytest tests/unit/ \
+python3 -m pytest tests/unit/ \
     --verbose \
     --tb=short \
     --cov=tests/unit \
