@@ -43,6 +43,9 @@ class I2CDeviceState:
     connected: bool = True
     response_delay: float = 0.001  # seconds
     last_access: datetime = field(default_factory=datetime.now)
+    # For ADS1115 ADC simulation - store per-channel conversion values
+    adc_channels: Dict[int, int] = field(default_factory=dict)  # channel -> raw_value
+    selected_channel: int = 0  # Currently selected ADC channel
 
 
 @dataclass
@@ -385,7 +388,17 @@ class MockSMBus:
             time.sleep(device.response_delay * 2)
             device.last_access = datetime.now()
 
-            # Read low and high bytes
+            # Simulate ADS1115 ADC behavior for address 0x48
+            if addr == 0x48 and reg == 0x00:
+                # Reading conversion register - return value for selected channel
+                channel_value = device.adc_channels.get(device.selected_channel, 0)
+                logger.debug(
+                    f"I2C read_word_data (ADS1115): addr=0x{addr:02X}, "
+                    f"reg=0x{reg:02X}, channel={device.selected_channel} -> 0x{channel_value:04X}"
+                )
+                return channel_value
+
+            # Read low and high bytes for normal registers
             low_byte = device.registers.get(reg, 0)
             high_byte = device.registers.get(reg + 1, 0)
             value = (high_byte << 8) | low_byte
@@ -403,7 +416,25 @@ class MockSMBus:
             time.sleep(device.response_delay * 2)
             device.last_access = datetime.now()
 
-            # Split into low and high bytes
+            # Simulate ADS1115 ADC behavior for address 0x48
+            if addr == 0x48 and reg == 0x01:
+                # Writing to config register - extract and store selected channel
+                # ADS1115 channel is in bits 14-12 of the config register
+                channel = (value >> 12) & 0x07
+                device.selected_channel = channel
+                logger.debug(
+                    f"I2C write_word_data (ADS1115): addr=0x{addr:02X}, "
+                    f"reg=0x{reg:02X}, value=0x{value:04X}, selected_channel={channel}"
+                )
+            elif addr == 0x48 and reg == 0x00:
+                # Writing to conversion register - store as channel-specific value
+                device.adc_channels[device.selected_channel] = value
+                logger.debug(
+                    f"I2C write_word_data (ADS1115): addr=0x{addr:02X}, "
+                    f"reg=0x{reg:02X}, channel={device.selected_channel}, value=0x{value:04X}"
+                )
+
+            # Split into low and high bytes for normal register storage
             low_byte = value & 0xFF
             high_byte = (value >> 8) & 0xFF
 
