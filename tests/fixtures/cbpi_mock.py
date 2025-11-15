@@ -171,9 +171,7 @@ class MockCBPiNotification:
     def __init__(self):
         self._notifications = []
 
-    async def notify(
-        self, title: str, message: str, type: str = "info", timeout: int = 5000
-    ) -> None:
+    async def notify(self, title: str, message: str, type: str = "info", timeout: int = 5000) -> None:
         """Send notification."""
         notification = {
             "title": title,
@@ -267,9 +265,7 @@ class MockCBPi:
         self._plugins[plugin_name] = plugin_instance
         logger.debug(f"Plugin registered: {plugin_name}")
 
-    async def register_extension(
-        self, extension_name: str, extension_instance: Any
-    ) -> None:
+    async def register_extension(self, extension_name: str, extension_instance: Any) -> None:
         """Register an extension instance."""
         self._extensions[extension_name] = extension_instance
         logger.debug(f"Extension registered: {extension_name}")
@@ -401,9 +397,7 @@ class PluginTestHarness:
         self.cbpi = MockCBPi()
         self.plugins = {}
 
-    async def load_plugin(
-        self, plugin_class, plugin_id: str, props: Optional[Dict] = None
-    ) -> Any:
+    async def load_plugin(self, plugin_class, plugin_id: str, props: Optional[Dict] = None) -> Any:
         """Load and initialize a plugin for testing."""
         props = props or {}
 
@@ -425,9 +419,7 @@ class PluginTestHarness:
 
             # Also check for classes that contain 'Extension' in their
             # name (for mock classes)
-            has_extension_base = any(
-                "CBPiExtension" in name or "Extension" in name for name in base_names
-            )
+            has_extension_base = any("CBPiExtension" in name or "Extension" in name for name in base_names)
 
             if "CBPiActor" in base_names:
                 plugin_instance = plugin_class(self.cbpi, plugin_id, props)
@@ -491,11 +483,7 @@ class PluginTestHarness:
 
         # Cancel any remaining tasks
         current_task = asyncio.current_task()
-        all_tasks = [
-            task
-            for task in asyncio.all_tasks()
-            if task != current_task and not task.done()
-        ]
+        all_tasks = [task for task in asyncio.all_tasks() if task != current_task and not task.done()]
 
         if all_tasks:
             logger.debug(f"Cancelling {len(all_tasks)} remaining tasks")
@@ -576,9 +564,7 @@ class MockProperty:
         )
 
     @staticmethod
-    def Select(
-        label: str, options: List, configurable: bool = True, description: str = ""
-    ):
+    def Select(label: str, options: List, configurable: bool = True, description: str = ""):
         return create_mock_property(
             label,
             "Select",
@@ -589,15 +575,11 @@ class MockProperty:
 
     @staticmethod
     def Actor(label: str, configurable: bool = True, description: str = ""):
-        return create_mock_property(
-            label, "Actor", configurable=configurable, description=description
-        )
+        return create_mock_property(label, "Actor", configurable=configurable, description=description)
 
     @staticmethod
     def Sensor(label: str, configurable: bool = True, description: str = ""):
-        return create_mock_property(
-            label, "Sensor", configurable=configurable, description=description
-        )
+        return create_mock_property(label, "Sensor", configurable=configurable, description=description)
 
 
 # =============================================================================

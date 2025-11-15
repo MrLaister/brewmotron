@@ -203,9 +203,7 @@ class TestSensorDisplayIntegration:
 
         # Verify sensor value propagated to CBPI system
         sensor_value = await harness.cbpi.sensor.get_value("mash_temp_sensor")
-        assert (
-            abs(sensor_value - 65.5) < 2.0
-        ), f"Sensor should read close to 65.5°C, got {sensor_value}"
+        assert abs(sensor_value - 65.5) < 2.0, f"Sensor should read close to 65.5°C, got {sensor_value}"
 
         display_task.cancel()
 
@@ -235,9 +233,7 @@ class TestSensorDisplayIntegration:
 
         # Verify temperature data is displayed
         temp_lines = [line for line in display_content if ":" in line and "C" in line]
-        assert (
-            len(temp_lines) >= 1
-        ), f"LCD should show temperature data, got: {display_content}"
+        assert len(temp_lines) >= 1, f"LCD should show temperature data, got: {display_content}"
 
         display_task.cancel()
 
@@ -269,12 +265,8 @@ class TestSensorDisplayIntegration:
         boil_temp = await harness.cbpi.sensor.get_value("boil_temp_sensor")
 
         # Verify sensor values are reasonable
-        assert (
-            abs(mash_temp - target_mash) < 3.0
-        ), f"Mash temp should be near {target_mash}, got {mash_temp}"
-        assert (
-            abs(boil_temp - target_boil) < 3.0
-        ), f"Boil temp should be near {target_boil}, got {boil_temp}"
+        assert abs(mash_temp - target_mash) < 3.0, f"Mash temp should be near {target_mash}, got {mash_temp}"
+        assert abs(boil_temp - target_boil) < 3.0, f"Boil temp should be near {target_boil}, got {boil_temp}"
 
         # Verify both displays are updating (not showing default values)
         mash_7seg = seg_display.displays[0x70]
@@ -329,9 +321,7 @@ class TestSensorDisplayIntegration:
         try:
             sensor_value = await harness.cbpi.sensor.get_value("mash_temp_sensor")
             # Error condition might return 85.0 (typical DS18B20 error value)
-            assert (
-                sensor_value is not None
-            ), "Sensor should return some value even in error state"
+            assert sensor_value is not None, "Sensor should return some value even in error state"
         except Exception:
             # Error handling is also acceptable
             pass
@@ -380,17 +370,11 @@ class TestSensorDisplayIntegration:
         # 7-segment displays should update more frequently (0.5s interval)
         # LCD displays should update less frequently (2.0s interval)
 
-        assert len(seg_updates) > len(
-            lcd_updates
-        ), "7-segment displays should update more frequently than LCD"
+        assert len(seg_updates) > len(lcd_updates), "7-segment displays should update more frequently than LCD"
 
         # Check for reasonable update counts over 6 seconds
-        assert (
-            len(seg_updates) >= 8
-        ), f"Expected at least 8 7-seg updates in 6s, got {len(seg_updates)}"
-        assert (
-            len(lcd_updates) >= 2
-        ), f"Expected at least 2 LCD updates in 6s, got {len(lcd_updates)}"
+        assert len(seg_updates) >= 8, f"Expected at least 8 7-seg updates in 6s, got {len(seg_updates)}"
+        assert len(lcd_updates) >= 2, f"Expected at least 2 LCD updates in 6s, got {len(lcd_updates)}"
 
     async def _track_updates(self, update_func, update_list):
         """Helper to track display update timing."""
@@ -425,9 +409,7 @@ class TestSensorDisplayIntegration:
 
             # Temperature should be moving in right direction
             if target_temp > 20.0:  # Skip first reading
-                assert (
-                    current_temp > 18.0
-                ), f"Temperature should be rising, got {current_temp}"
+                assert current_temp > 18.0, f"Temperature should be rising, got {current_temp}"
 
             # Display should be updating (not stuck at zero)
             mash_display = seg_display.displays[0x70]

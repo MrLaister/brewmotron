@@ -120,9 +120,7 @@ class TestNOR3:
                 except Exception:
                     return False
 
-        plugin = await plugin_harness.load_plugin(
-            MockNOR3, nor3_config.id, nor3_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockNOR3, nor3_config.id, nor3_config.props)
 
         assert plugin.id == nor3_config.id
         assert plugin.gpio == 18
@@ -171,9 +169,7 @@ class TestNOR3:
 
                 return nor_result
 
-        plugin = await plugin_harness.load_plugin(
-            MockNOR3, "test_nor3_logic", {"GPIO": 18, "Inverted": "No"}
-        )
+        plugin = await plugin_harness.load_plugin(MockNOR3, "test_nor3_logic", {"GPIO": 18, "Inverted": "No"})
 
         # Test all 8 combinations of 3 inputs
         truth_table = [
@@ -190,9 +186,7 @@ class TestNOR3:
 
         for a, b, c, expected in truth_table:
             result = plugin.calculate_nor3(a, b, c)
-            assert (
-                result == expected
-            ), f"NOR3({a},{b},{c}) should be {expected}, got {result}"
+            assert result == expected, f"NOR3({a},{b},{c}) should be {expected}, got {result}"
 
             # Verify GPIO output matches logic result (for non-inverted)
             expected_gpio = mock_gpio.HIGH if expected else mock_gpio.LOW
@@ -235,9 +229,7 @@ class TestNOR3:
 
                 return output_state  # Return inverted result for testing
 
-        plugin = await plugin_harness.load_plugin(
-            MockNOR3, "test_inverted_nor3", {"GPIO": 18, "Inverted": "Yes"}
-        )
+        plugin = await plugin_harness.load_plugin(MockNOR3, "test_inverted_nor3", {"GPIO": 18, "Inverted": "Yes"})
 
         assert plugin.inverted == True
 
@@ -290,21 +282,9 @@ class TestNOR3:
                     self.evaluation_count += 1
 
                     # Get input states (simulated)
-                    state_a = (
-                        await self.cbpi.actor.get_state(self.input_a)
-                        if self.input_a
-                        else False
-                    )
-                    state_b = (
-                        await self.cbpi.actor.get_state(self.input_b)
-                        if self.input_b
-                        else False
-                    )
-                    state_c = (
-                        await self.cbpi.actor.get_state(self.input_c)
-                        if self.input_c
-                        else False
-                    )
+                    state_a = await self.cbpi.actor.get_state(self.input_a) if self.input_a else False
+                    state_b = await self.cbpi.actor.get_state(self.input_b) if self.input_b else False
+                    state_c = await self.cbpi.actor.get_state(self.input_c) if self.input_c else False
 
                     # Calculate NOR3
                     nor_result = not (state_a or state_b or state_c)
@@ -357,9 +337,7 @@ class TestNOR3:
         assert len(errors) == 0
 
         # Missing inputs should still be valid (will default to False)
-        minimal_config = GPIOActorConfigFactory(
-            id="test_minimal_nor3", props={"GPIO": 18}
-        )
+        minimal_config = GPIOActorConfigFactory(id="test_minimal_nor3", props={"GPIO": 18})
         errors = validate_plugin_config(minimal_config)
         assert len(errors) == 0
 
@@ -460,9 +438,7 @@ class TestNOR3EdgeCases:
                 self.running = False
                 mock_gpio.cleanup(self.gpio)
 
-        plugin = await plugin_harness.load_plugin(
-            MockNOR3, "test_no_inputs", {"GPIO": 18}  # No input actors specified
-        )
+        plugin = await plugin_harness.load_plugin(MockNOR3, "test_no_inputs", {"GPIO": 18})  # No input actors specified
 
         # Should handle empty configuration gracefully
         assert plugin.input_a == ""

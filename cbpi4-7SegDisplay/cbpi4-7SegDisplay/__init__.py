@@ -54,9 +54,7 @@ except Exception as e:
 
 class SSDisplay(CBPiExtension):
     def __init__(self, cbpi):
-        self.settinggroupname = (
-            "SevenSegmentDisplay_"  # TODO: Change to "BMT-SevenSegmentDisplay_"
-        )
+        self.settinggroupname = "SevenSegmentDisplay_"  # TODO: Change to "BMT-SevenSegmentDisplay_"
         self.cbpi = cbpi
         self.sevsegcounter = 0
         self._task = asyncio.create_task(self.run())
@@ -191,11 +189,7 @@ class SSDisplay(CBPiExtension):
                     )
                 )
                 if DEBUG:
-                    logger.info(
-                        "Seven Segment Display - Info: Display "
-                        + str(i + 1)
-                        + " object added"
-                    )
+                    logger.info("Seven Segment Display - Info: Display " + str(i + 1) + " object added")
             except Exception as e:
                 logger.warning("Seven segment display address setup failed.")
                 logger.warning(e)
@@ -211,9 +205,7 @@ class SSDisplay(CBPiExtension):
         while True:
             # this is the main code repeated constantly
             refresh_time = await self.set_display_refresh()
-            [active_step_name, active_step_temp_target, target_kettle] = (
-                await self.get_active_step_values()
-            )
+            [active_step_name, active_step_temp_target, target_kettle] = await self.get_active_step_values()
             # LEDs can be mapped to active_state['name']; define in settings
             for display in self.sevSeg:
                 display.mode = await self.set_display_mode(display.number)
@@ -325,9 +317,7 @@ class SSDisplay(CBPiExtension):
         address = self.cbpi.config.get(settingsName, None)
         if address is None:
             try:
-                await self.cbpi.config.add(
-                    settingsName, defaultValue, ConfigType.STRING, settingSubtitle
-                )
+                await self.cbpi.config.add(settingsName, defaultValue, ConfigType.STRING, settingSubtitle)
                 logger.info(str(settingsName + "added"))
                 address = self.cbpi.config.get(settingsName, None)
             except Exception as e:
@@ -346,8 +336,7 @@ class SSDisplay(CBPiExtension):
                     settingsName,
                     3,
                     ConfigType.SELECT,
-                    "Display update time in seconds for all displays. "
-                    "CBPi reboot not required",
+                    "Display update time in seconds for all displays. " "CBPi reboot not required",
                     [
                         {"label": "1s", "value": 1},
                         {"label": "2s", "value": 2},
@@ -374,10 +363,7 @@ class SSDisplay(CBPiExtension):
                     settingsName,
                     "Singledisplay",
                     ConfigType.SELECT,
-                    "select the mode of Display_"
-                    + str(displayNo)
-                    + ", consult readme, NO! CBPi reboot "
-                    "required",
+                    "select the mode of Display_" + str(displayNo) + ", consult readme, NO! CBPi reboot " "required",
                     [
                         {"label": "From Kettle", "value": "Kettle"},
                         {"label": "From Sensor", "value": "Sensor"},
@@ -400,8 +386,7 @@ class SSDisplay(CBPiExtension):
                     settingsName,
                     "",
                     ConfigType.KETTLE,
-                    "select the kettle to be displayed, consult readme, "
-                    "NO! CBPi reboot required",
+                    "select the kettle to be displayed, consult readme, " "NO! CBPi reboot required",
                 )
                 logger.info(settingsName + " added")
                 kettle_id = self.cbpi.config.get(settingsName, None)
@@ -533,9 +518,7 @@ class SSDisplay(CBPiExtension):
                     sensor_name = sensors[i]["name"]
                     # sensor_id = (sensors[i]['id'])
                     sensor_props = sensors[i]["props"]
-                    sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get(
-                        "value"
-                    )
+                    sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get("value")
                     return {
                         "sensor_id": sensor_id,
                         "sensor_name": sensor_name,

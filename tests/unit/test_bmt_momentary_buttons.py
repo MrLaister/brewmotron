@@ -64,9 +64,7 @@ class TestBMTMomentaryButtons:
                 self.cbpi = cbpi
                 return True
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, button_config.id, button_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, button_config.id, button_config.props)
 
         # Verify initialization
         assert plugin.state == False
@@ -75,9 +73,7 @@ class TestBMTMomentaryButtons:
         assert plugin.props["Button Function"] == "Select"
 
     @pytest.mark.asyncio
-    async def test_gpio_state_detection_normal_logic(
-        self, plugin_harness, button_config
-    ):
+    async def test_gpio_state_detection_normal_logic(self, plugin_harness, button_config):
         """Test GPIO input state detection with normal logic."""
 
         class MockBMTMomentaryButton:
@@ -132,9 +128,7 @@ class TestBMTMomentaryButtons:
             async def off(self):
                 self.state = False
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, button_config.id, button_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, button_config.id, button_config.props)
 
         # Test button press sequence
         state1 = plugin.get_state()  # Initial state
@@ -196,9 +190,7 @@ class TestBMTMomentaryButtons:
 
                 return self.state
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, inverted_config.id, inverted_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, inverted_config.id, inverted_config.props)
 
         # Test inverted button press sequence
         state1 = plugin.get_state()  # Initial state (high = not pressed)
@@ -233,9 +225,7 @@ class TestBMTMomentaryButtons:
                 # Simulate finding active step and progressing
                 self.progress_called = True
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, button_config.id, button_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, button_config.id, button_config.props)
 
         # Test Select button function
         await plugin.on()
@@ -293,9 +283,7 @@ class TestBMTMomentaryButtons:
                 # Simulate active step with kettle
                 return "65", "kettle_1"
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, plus_ten_config.id, plus_ten_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, plus_ten_config.id, plus_ten_config.props)
 
         # Test +10 temperature function
         await plugin.on()
@@ -349,9 +337,7 @@ class TestBMTMomentaryButtons:
             def get_active_step_values(self):
                 return "65", "kettle_1"
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, minus_ten_config.id, minus_ten_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, minus_ten_config.id, minus_ten_config.props)
 
         # Test -10 temperature function
         await plugin.on()
@@ -414,9 +400,7 @@ class TestBMTMomentaryButtons:
             props={"GPIO": 25, "Inverted": "No", "Button Function": "+10"},
         )
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, config.id, config.props)
 
         # Test high temperature clamping (95 + 10 = 100, not 105)
         await plugin.temp_change(10)
@@ -474,8 +458,7 @@ class TestBMTMomentaryButtons:
                                 targetTemp = str(step["props"]["Temp"])
                                 kettle_id = str(step["props"]["Kettle"])
                                 self.step_detection_calls.append(
-                                    f"Found active step: {targetTemp}°C, "
-                                    f"kettle: {kettle_id}"
+                                    f"Found active step: {targetTemp}°C, " f"kettle: {kettle_id}"
                                 )
                                 return [targetTemp, kettle_id]
                     elif self._scenario == 2:
@@ -500,9 +483,7 @@ class TestBMTMomentaryButtons:
                     self.step_detection_calls.append(f"Error: {e}")
                     return ["---", None]
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, button_config.id, button_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, button_config.id, button_config.props)
 
         # Test active step detection scenarios
         result1 = plugin.get_active_step_values()  # Active step found
@@ -562,9 +543,7 @@ class TestBMTMomentaryButtonsEdgeCases:
                 # Normal GPIO handling would go here
                 return self.state
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, invalid_config.id, invalid_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, invalid_config.id, invalid_config.props)
 
         # Test GPIO error handling
         state = plugin.get_state()
@@ -666,9 +645,7 @@ class TestBMTMomentaryButtonsEdgeCases:
             props={"GPIO": 27, "Inverted": "No", "Button Function": "Select"},
         )
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, config.id, config.props)
 
         # Test progression with no active step
         await plugin.progress()
@@ -711,9 +688,7 @@ class TestBMTMomentaryButtonsEdgeCases:
             props={"GPIO": 28, "Inverted": "No", "Button Function": "+5"},
         )
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTMomentaryButton, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTMomentaryButton, config.id, config.props)
 
         # Test temperature change with no kettle
         await plugin.temp_change(5)

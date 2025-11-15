@@ -74,9 +74,7 @@ class TestAlwaysONGPIO:
                 self.running = False
                 mock_gpio.cleanup(self.gpio)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOAON, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOAON, gpio_config.id, gpio_config.props)
 
         assert plugin.id == gpio_config.id
         assert plugin.gpio == 18
@@ -89,9 +87,7 @@ class TestAlwaysONGPIO:
     @pytest.mark.asyncio
     async def test_inverted_logic(self, plugin_harness, mock_gpio):
         """Test inverted GPIO logic."""
-        config = GPIOActorConfigFactory(
-            id="test_inverted_always_on", props={"GPIO": 27, "Inverted": "Yes"}
-        )
+        config = GPIOActorConfigFactory(id="test_inverted_always_on", props={"GPIO": 27, "Inverted": "Yes"})
 
         class MockGPIOAON:
             _plugin_type = "Actor"
@@ -149,9 +145,7 @@ class TestAlwaysONGPIO:
                 self.running = False
                 mock_gpio.cleanup(self.gpio)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOAON, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOAON, gpio_config.id, gpio_config.props)
 
         # Verify GPIO is initially setup and active
         assert plugin.running == True
@@ -253,9 +247,7 @@ class TestAlwaysONGPIOEdgeCases:
                 self.id = id
                 self.props = props
                 self.gpio = int(props.get("GPIO", 18))
-                self.inverted = (
-                    props.get("Inverted", "No") == "Yes"
-                )  # Should default to False
+                self.inverted = props.get("Inverted", "No") == "Yes"  # Should default to False
                 self.running = False
 
             async def on_start(self):

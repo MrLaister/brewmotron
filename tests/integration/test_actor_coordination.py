@@ -42,9 +42,7 @@ class MockOneAtATimeActor(MockCBPiActorBase):
             self.cbpi._coordinators = {}
 
         if self.coordination_group not in self.cbpi._coordinators:
-            self.cbpi._coordinators[self.coordination_group] = ActorCoordinator(
-                self.coordination_group
-            )
+            self.cbpi._coordinators[self.coordination_group] = ActorCoordinator(self.coordination_group)
 
         self.coordinator = self.cbpi._coordinators[self.coordination_group]
         await self.coordinator.register_actor(self)
@@ -134,9 +132,7 @@ class ActorCoordinator:
                     # Turn on requested actor
                     if actor_id in self.actors:
                         actor = self.actors[actor_id]
-                        await MockCBPiActorBase.on(
-                            actor, power
-                        )  # Call parent on() method
+                        await MockCBPiActorBase.on(actor, power)  # Call parent on() method
                         self.active_actor = actor_id
                         return True
 
@@ -309,28 +305,20 @@ class TestActorCoordination:
         coordinator = harness.cbpi._coordinators[1]
 
         # Initially no active actor
-        assert (
-            coordinator.get_active_actor() is None
-        ), "No actor should be active initially"
+        assert coordinator.get_active_actor() is None, "No actor should be active initially"
         assert coordinator.get_actor_count() == 3, "Should have 3 registered actors"
 
         # Turn on mash heater
         await mash_heater.on()
-        assert (
-            coordinator.get_active_actor() == "mash_heater"
-        ), "Mash heater should be active"
+        assert coordinator.get_active_actor() == "mash_heater", "Mash heater should be active"
 
         # Switch to boil heater
         await boil_heater.on()
-        assert (
-            coordinator.get_active_actor() == "boil_heater"
-        ), "Boil heater should be active"
+        assert coordinator.get_active_actor() == "boil_heater", "Boil heater should be active"
 
         # Turn off boil heater
         await boil_heater.off()
-        assert (
-            coordinator.get_active_actor() is None
-        ), "No actor should be active after turning off"
+        assert coordinator.get_active_actor() is None, "No actor should be active after turning off"
 
     @pytest.mark.asyncio
     async def test_concurrent_actor_requests(self, coordination_harness):
@@ -370,9 +358,7 @@ class TestActorCoordination:
         assert active_count == 1, f"Only one actor should be active, got {active_count}"
 
         # One of the actors should have succeeded
-        assert any(
-            [mash_heater.state, boil_heater.state, pump.state]
-        ), "At least one actor should be active"
+        assert any([mash_heater.state, boil_heater.state, pump.state]), "At least one actor should be active"
 
     @pytest.mark.asyncio
     async def test_actor_power_level_preservation(self, coordination_harness):
@@ -387,16 +373,12 @@ class TestActorCoordination:
         # Turn on boil heater with different power
         await boil_heater.on(90)
         assert boil_heater.power == 90, "Boil heater power should be 90%"
-        assert (
-            mash_heater.power == 0
-        ), "Mash heater power should be reset when turned off"
+        assert mash_heater.power == 0, "Mash heater power should be reset when turned off"
 
         # Turn mash heater back on with new power level
         await mash_heater.on(60)
         assert mash_heater.power == 60, "Mash heater power should be 60%"
-        assert (
-            boil_heater.power == 0
-        ), "Boil heater power should be reset when turned off"
+        assert boil_heater.power == 0, "Boil heater power should be reset when turned off"
 
     @pytest.mark.asyncio
     async def test_coordination_timing_and_race_conditions(self, coordination_harness):
@@ -419,12 +401,8 @@ class TestActorCoordination:
 
                     # Verify only one actor is active
                     active_actors = [a for a in actors if a.state]
-                    assert (
-                        len(active_actors) == 1
-                    ), f"Only one actor should be active, iteration {i}"
-                    assert (
-                        active_actors[0] == selected_actor
-                    ), f"Wrong actor active at iteration {i}"
+                    assert len(active_actors) == 1, f"Only one actor should be active, iteration {i}"
+                    assert active_actors[0] == selected_actor, f"Wrong actor active at iteration {i}"
         except asyncio.TimeoutError:
             raise AssertionError("Timing stress test timed out")
 
@@ -447,9 +425,7 @@ class TestActorCoordination:
 
         # System should recover when turning on valid actor
         await boil_heater.on(80)
-        assert (
-            coordinator.get_active_actor() == "boil_heater"
-        ), "Should recover to valid actor"
+        assert coordinator.get_active_actor() == "boil_heater", "Should recover to valid actor"
         assert boil_heater.state == True, "Boil heater should be active"
 
     @pytest.mark.asyncio
@@ -458,13 +434,9 @@ class TestActorCoordination:
         harness = coordination_harness["harness"]
 
         # Add GPIO actors to the coordination system
-        gpio_heater1 = await harness.load_plugin(
-            MockGPIOActor, "gpio_heater1", {"GPIO": 18, "Inverted": "No"}
-        )
+        gpio_heater1 = await harness.load_plugin(MockGPIOActor, "gpio_heater1", {"GPIO": 18, "Inverted": "No"})
 
-        gpio_heater2 = await harness.load_plugin(
-            MockGPIOActor, "gpio_heater2", {"GPIO": 19, "Inverted": "Yes"}
-        )
+        gpio_heater2 = await harness.load_plugin(MockGPIOActor, "gpio_heater2", {"GPIO": 19, "Inverted": "Yes"})
 
         # Wrap GPIO actors with coordination
         coord_gpio1 = await harness.load_plugin(
@@ -490,12 +462,8 @@ class TestActorCoordination:
 
         # Test that coordination groups work independently
         coordinator = harness.cbpi._coordinators[3]
-        assert (
-            coordinator.get_active_actor() == "coord_gpio2"
-        ), "GPIO coordinator should track active actor"
-        assert (
-            coordinator.get_actor_count() == 2
-        ), "GPIO coordinator should have 2 actors"
+        assert coordinator.get_active_actor() == "coord_gpio2", "GPIO coordinator should track active actor"
+        assert coordinator.get_actor_count() == 2, "GPIO coordinator should have 2 actors"
 
     @pytest.mark.asyncio
     async def test_multiple_coordination_groups(self, coordination_harness):

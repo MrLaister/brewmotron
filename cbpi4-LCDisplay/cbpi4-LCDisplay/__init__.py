@@ -52,9 +52,7 @@ from RPLCD.i2c import CharLCD
 
 logger = logging.getLogger(__name__)
 DEBUG = False  # turn True to show (much) more debug info in app.log
-BLINK = (
-    False  # blinking beerglass during heating (single mode)
-)
+BLINK = False  # blinking beerglass during heating (single mode)
 global lcd
 # beerglass symbol
 bierkrug = (0b11100, 0b00000, 0b11100, 0b11111, 0b11101, 0b11101, 0b11111, 0b11100)
@@ -130,9 +128,7 @@ class LCDisplay(CBPiExtension):
         logger.info("LCDisplay - LCD single_kettle_id: %s" % single_kettle_id)
 
         sensor_for_sensor_mode = await self.set_lcd_sensortype_for_sensor_mode()
-        logger.info(
-            "LCDisplay - LCD sensor_for_sensor_mode: %s" % sensor_for_sensor_mode
-        )
+        logger.info("LCDisplay - LCD sensor_for_sensor_mode: %s" % sensor_for_sensor_mode)
 
         # ************************************************************
         # ************************************************************
@@ -184,18 +180,14 @@ class LCDisplay(CBPiExtension):
                 kettle_id = kettles[i]["id"]
                 # kettle_name = (kettles[i]["name"])
                 # logger.info("multi kettle_name: {}".format(kettle_name))
-                await self.show_singledisplay(
-                    kettle_id, charmap, refresh_time, multidisplay
-                )
+                await self.show_singledisplay(kettle_id, charmap, refresh_time, multidisplay)
             except Exception as e:
                 logger.error(e)
             pass
             i = i + 1
         pass
 
-    async def show_singledisplay(
-        self, kettle_id, charmap="A00", refresh_time=1.0, multidisplay=False
-    ):
+    async def show_singledisplay(self, kettle_id, charmap="A00", refresh_time=1.0, multidisplay=False):
 
         # what if kettle_id ="" like a forgotten settings entry?  # todo
         # get default Kettle from Settings
@@ -242,9 +234,7 @@ class LCDisplay(CBPiExtension):
         if ("boil" in boil_check) is True:  # string "boil" in stepname detected
             try:
                 # convert 00:00:00 to sec
-                time_left = sum(
-                    x * int(t) for x, t in zip([3600, 60, 1], remaining_time.split(":"))
-                )
+                time_left = sum(x * int(t) for x, t in zip([3600, 60, 1], remaining_time.split(":")))
                 next_hop_alert = await self.get_next_hop_timer(steps_props, time_left)
             except Exception as e:
                 # logger.error(e)
@@ -255,9 +245,7 @@ class LCDisplay(CBPiExtension):
 
             # line2 if steptimer is running show remaining time and kettlename together
             if is_timer_running is True:
-                line2 = ("%s %s" % (kettle_name.ljust(12)[:11], remaining_time)).ljust(
-                    20
-                )[:20]
+                line2 = ("%s %s" % (kettle_name.ljust(12)[:11], remaining_time)).ljust(20)[:20]
                 pass
             else:
                 line2 = "%s" % kettle_name.ljust(20)[:20]
@@ -265,16 +253,12 @@ class LCDisplay(CBPiExtension):
 
             # step3 target temp and current temp in one line
             try:
-                line3 = (
-                    "Set|Act:%4.0f°%5.1f%s%s"
-                    % (float(kettle_target_temp), float(sensor_value), "°", lcd_unit)
-                )[:20]
+                line3 = ("Set|Act:%4.0f°%5.1f%s%s" % (float(kettle_target_temp), float(sensor_value), "°", lcd_unit))[
+                    :20
+                ]
             except Exception as e:
                 logger.error(e)
-                line3 = (
-                    "Set|Act:%4.0f°%s%s%s"
-                    % (float(kettle_target_temp), " n.a ", "°", lcd_unit)
-                )[:20]
+                line3 = ("Set|Act:%4.0f°%s%s%s" % (float(kettle_target_temp), " n.a ", "°", lcd_unit))[:20]
             pass
 
             # line 4 if hoptimer running show it
@@ -290,24 +274,18 @@ class LCDisplay(CBPiExtension):
 
             # line2 when steptimer is running show remaining time and kettlename
             if is_timer_running is True:
-                line2 = ("%s %s" % (kettle_name.ljust(12)[:11], remaining_time)).ljust(
-                    20
-                )[:20]
+                line2 = ("%s %s" % (kettle_name.ljust(12)[:11], remaining_time)).ljust(20)[:20]
                 pass
             else:
                 line2 = "%s" % kettle_name.ljust(20)[:20]
             pass
 
             # line 3 Target temp
-            line3 = (
-                "Targ. Temp:%6.2f%s%s" % (float(kettle_target_temp), "°", lcd_unit)
-            ).ljust(20)[:20]
+            line3 = ("Targ. Temp:%6.2f%s%s" % (float(kettle_target_temp), "°", lcd_unit)).ljust(20)[:20]
 
             # line 4 Current temp
             try:
-                line4 = (
-                    "Curr. Temp:%6.2f%s%s" % (float(sensor_value), "°", lcd_unit)
-                ).ljust(20)[:20]
+                line4 = ("Curr. Temp:%6.2f%s%s" % (float(sensor_value), "°", lcd_unit)).ljust(20)[:20]
             except Exception as e:
                 logger.error(e)
                 line4 = ("Curr. Temp: {}".format("No Data"))[:20]
@@ -361,19 +339,12 @@ class LCDisplay(CBPiExtension):
                         # sensortype = (sensors[i]["type"])
                         sensor_name = sensors[i]["name"]
                         sensor_id = sensors[i]["id"]
-                        sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get(
-                            "value"
-                        )
+                        sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get("value")
 
                         line1 = "CBPi4 LCD Sensormode"
                         line2 = "--------------------"
                         # line2 = ('Type: %s' % (await self.cbidecode(sensortype, charmap))).ljust(20)[:20]
-                        line3 = (
-                            "%s"
-                            % (await self.cbidecode(sensor_name, charmap)).ljust(20)[
-                                :20
-                            ]
-                        )
+                        line3 = "%s" % (await self.cbidecode(sensor_name, charmap)).ljust(20)[:20]
                         # line3 = (sensor_name.ljust(20))[:20]
                         line4 = (str(sensor_value).ljust(20))[:20]
 
@@ -427,10 +398,7 @@ class LCDisplay(CBPiExtension):
                 if hop_left > 0:
                     hop_timers.append(hop_left)
                     if DEBUG:
-                        logger.info(
-                            "LCDDisplay  - get_next_hop_timer %s %s"
-                            % (x, str(hop_timers))
-                        )
+                        logger.info("LCDDisplay  - get_next_hop_timer %s %s" % (x, str(hop_timers)))
                 pass
             pass
         pass
@@ -554,8 +522,7 @@ class LCDisplay(CBPiExtension):
                     "LCD_Refresh",
                     3,
                     ConfigType.SELECT,
-                    "Time to remain till next display in sec, NO! CBPi reboot "
-                    "required",
+                    "Time to remain till next display in sec, NO! CBPi reboot " "required",
                     [
                         {"label": "1s", "value": 1},
                         {"label": "2s", "value": 2},
@@ -582,8 +549,7 @@ class LCDisplay(CBPiExtension):
                     "LCD_Display_Mode",
                     "Multidisplay",
                     ConfigType.SELECT,
-                    "select the mode of the LCD Display, consult readme, NO! CBPi reboot "
-                    "required",
+                    "select the mode of the LCD Display, consult readme, NO! CBPi reboot " "required",
                     [
                         {"label": "Multidisplay", "value": "Multidisplay"},
                         {"label": "Singledisplay", "value": "Singledisplay"},
@@ -601,9 +567,7 @@ class LCDisplay(CBPiExtension):
     async def set_lcd_sensortype_for_sensor_mode(self):
         # this mode is the desired mode but requires avollkopfs craftbeerpi4-ui
         # avollkopfs repository is highly recommended to use
-        sensor_id = self.cbpi.config.get(
-            "LCD_Display_Sensortype", None
-        )  # this is only Sensor ID not type
+        sensor_id = self.cbpi.config.get("LCD_Display_Sensortype", None)  # this is only Sensor ID not type
         if sensor_id is None:
             try:
                 await self.cbpi.config.add(
@@ -639,8 +603,7 @@ class LCDisplay(CBPiExtension):
                     "LCD_Display_Sensortype",
                     "OneWire",
                     ConfigType.SELECT,
-                    "select the type of sensors to be displayed in LCD, consult readme, "
-                    "NO! CBPi reboot required",
+                    "select the type of sensors to be displayed in LCD, consult readme, " "NO! CBPi reboot required",
                     [
                         {"label": "OneWire", "value": "OneWire"},
                         {"label": "iSpindle", "value": "iSpindle"},
@@ -669,8 +632,7 @@ class LCDisplay(CBPiExtension):
                     "LCD_Singledisplay_Kettle",
                     "",
                     ConfigType.KETTLE,
-                    "select the kettle to be displayed in LCD, consult readme, "
-                    "NO! CBPi reboot required",
+                    "select the kettle to be displayed in LCD, consult readme, " "NO! CBPi reboot required",
                 )
                 logger.info("LCD_Singledisplay_Kettle added")
                 kettle_id = self.cbpi.config.get("LCD_Singledisplay_Kettle", None)
@@ -681,17 +643,10 @@ class LCDisplay(CBPiExtension):
         pass
         return kettle_id
 
-    async def cbidecode(
-        self, string, charmap="A00"
-    ):  # Changes some german Letters to be displayed
+    async def cbidecode(self, string, charmap="A00"):  # Changes some german Letters to be displayed
         if charmap == "A00":
             # if DEBUG: logger.info('LCDDisplay  - string: %s' % string)
-            replaced_text = (
-                string.replace("Ä", "\x02")
-                .replace("Ö", "\x03")
-                .replace("Ü", "\x04")
-                .replace("ß", "\x05")
-            )
+            replaced_text = string.replace("Ä", "\x02").replace("Ö", "\x03").replace("Ü", "\x04").replace("ß", "\x05")
             # if DEBUG: logger.info('LCDDisplay  - replaced_text: %s' % replaced_text)
             return replaced_text
         else:
@@ -710,9 +665,7 @@ class LCDisplay(CBPiExtension):
                     active_step_name = "Name: %s" % (steps[i]["name"])
                     active_step_status = "Status: %s" % (steps[i]["status"])
                     active_step_state_text = "Status: %s" % (steps[i]["state_text"])
-                    active_step_target_temp = "Target Temp: %s°C" % (
-                        steps[i]["props"]["Temp"]
-                    )
+                    active_step_target_temp = "Target Temp: %s°C" % (steps[i]["props"]["Temp"])
                     active_step_timer_value = "Timer: %s" % (steps[i]["props"]["Timer"])
                     active_step_probs = steps[i]["props"]
                     return {
@@ -792,9 +745,7 @@ class LCDisplay(CBPiExtension):
                     sensor_name = sensors[i]["name"]
                     # sensor_id = (sensors[i]['id'])
                     sensor_props = sensors[i]["props"]
-                    sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get(
-                        "value"
-                    )
+                    sensor_value = self.cbpi.sensor.get_sensor_value(sensor_id).get("value")
                     return {
                         "sensor_id": sensor_id,
                         "sensor_name": sensor_name,

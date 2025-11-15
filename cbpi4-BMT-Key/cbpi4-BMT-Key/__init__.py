@@ -22,15 +22,9 @@ except Exception as e:
 
 @parameters(
     [
-        Property.Actor(
-            label="OFF_State", description="Select a GPIO Actor showing OFF Mode"
-        ),
-        Property.Actor(
-            label="Clean_State", description="Select a GPIO Actor showing Clean Mode"
-        ),
-        Property.Actor(
-            label="Brew_State", description="Select a GPIO Actor showing Brew Mode"
-        ),
+        Property.Actor(label="OFF_State", description="Select a GPIO Actor showing OFF Mode"),
+        Property.Actor(label="Clean_State", description="Select a GPIO Actor showing Clean Mode"),
+        Property.Actor(label="Brew_State", description="Select a GPIO Actor showing Brew Mode"),
         Property.Actor(
             label="Ferment_State",
             description="Select a GPIO Actor showing Ferment Mode",
@@ -49,9 +43,7 @@ class BMTKey(CBPiExtension):
     def __init__(self, cbpi):
         self.actors = []
         self.settinggroupname = "BMT-Key_"
-        self.settingDescription = (
-            "Select an Actor to indicate when this mode is active (high)"
-        )
+        self.settingDescription = "Select an Actor to indicate when this mode is active (high)"
         self.cbpi = cbpi
         self.keyStates = [
             ("Off", "OFF_State", ""),
@@ -140,9 +132,7 @@ class BMTKey(CBPiExtension):
         mode_actorID = self.cbpi.config.get(settingsName, None)
         if mode_actorID is None:
             try:
-                await self.cbpi.config.add(
-                    settingsName, "", ConfigType.ACTOR, settingDescription
-                )
+                await self.cbpi.config.add(settingsName, "", ConfigType.ACTOR, settingDescription)
                 logger.info(str(settingsName + "added"))
                 mode_actorID = self.cbpi.config.get(settingsName, None)
             except Exception as e:
@@ -159,10 +149,7 @@ class BMTKey(CBPiExtension):
             for actor in actors:
                 if actor["type"] == actorPluginType:
                     logger.info(
-                        "appending actor list with "
-                        + actor["props"]["actor"]
-                        + " with controller ID "
-                        + actor["id"]
+                        "appending actor list with " + actor["props"]["actor"] + " with controller ID " + actor["id"]
                     )
                     self.actors.append(actor["id"])
                     self.actors.append(actor["props"]["actor"])

@@ -82,9 +82,7 @@ class TestGPIOInput:
                 mock_gpio.output(self.gpio_pin, output_value)
 
         # Load plugin
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, gpio_config.id, gpio_config.props)
 
         # Verify initialization
         assert plugin.id == gpio_config.id
@@ -97,9 +95,7 @@ class TestGPIOInput:
         mock_gpio.output.assert_called_with(18, mock_gpio.LOW)
 
     @pytest.mark.asyncio
-    async def test_actor_on_off_normal_logic(
-        self, plugin_harness, gpio_config, mock_gpio
-    ):
+    async def test_actor_on_off_normal_logic(self, plugin_harness, gpio_config, mock_gpio):
         """Test turning actor on and off with normal logic."""
 
         class MockGPIOInput:
@@ -128,9 +124,7 @@ class TestGPIOInput:
                 output_value = mock_gpio.HIGH if self.inverted else mock_gpio.LOW
                 mock_gpio.output(self.gpio_pin, output_value)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, gpio_config.id, gpio_config.props)
 
         # Test turning on
         await plugin.on()
@@ -161,9 +155,7 @@ class TestGPIOInput:
 
             async def on_start(self):
                 mock_gpio.setup(self.gpio_pin, mock_gpio.OUT)
-                mock_gpio.output(
-                    self.gpio_pin, mock_gpio.HIGH
-                )  # Inverted initial state
+                mock_gpio.output(self.gpio_pin, mock_gpio.HIGH)  # Inverted initial state
 
             async def on_stop(self):
                 mock_gpio.cleanup(self.gpio_pin)
@@ -178,16 +170,12 @@ class TestGPIOInput:
                 output_value = mock_gpio.HIGH if self.inverted else mock_gpio.LOW
                 mock_gpio.output(self.gpio_pin, output_value)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, inverted_config.id, inverted_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, inverted_config.id, inverted_config.props)
 
         # Verify inverted initialization
         assert plugin.inverted == True
         mock_gpio.setup.assert_called_with(19, mock_gpio.OUT)
-        mock_gpio.output.assert_called_with(
-            19, mock_gpio.HIGH
-        )  # Initially HIGH for inverted
+        mock_gpio.output.assert_called_with(19, mock_gpio.HIGH)  # Initially HIGH for inverted
 
         # Test turning on (should output LOW for inverted logic)
         await plugin.on()
@@ -203,9 +191,7 @@ class TestGPIOInput:
     @pytest.mark.asyncio
     async def test_different_gpio_pins(self, plugin_harness, mock_gpio, gpio_pin):
         """Test plugin with different GPIO pins."""
-        config = GPIOActorConfigFactory(
-            id=f"test_gpio_{gpio_pin}", props={"GPIO": gpio_pin, "Inverted": "No"}
-        )
+        config = GPIOActorConfigFactory(id=f"test_gpio_{gpio_pin}", props={"GPIO": gpio_pin, "Inverted": "No"})
 
         class MockGPIOInput:
             def __init__(self, cbpi, id, props):
@@ -231,9 +217,7 @@ class TestGPIOInput:
                 self.state = False
                 mock_gpio.output(self.gpio_pin, mock_gpio.LOW)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, config.id, config.props)
 
         assert plugin.gpio_pin == gpio_pin
         mock_gpio.setup.assert_called_with(gpio_pin, mock_gpio.OUT)
@@ -261,9 +245,7 @@ class TestGPIOInput:
             async def on_stop(self):
                 mock_gpio.cleanup(self.gpio_pin)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, gpio_config.id, gpio_config.props)
 
         # Unload plugin to trigger cleanup
         await plugin_harness.unload_plugin(gpio_config.id)
@@ -300,9 +282,7 @@ class TestGPIOInput:
                 self.state = False
                 mock_gpio.output(self.gpio_pin, mock_gpio.LOW)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, gpio_config.id, gpio_config.props)
 
         # Perform rapid switching
         for i in range(100):
@@ -349,9 +329,7 @@ class TestGPIOInput:
 
             # Plugin initialization should raise exception
             with pytest.raises(RuntimeError, match="GPIO setup failed"):
-                await plugin_harness.load_plugin(
-                    MockGPIOInput, gpio_config.id, gpio_config.props
-                )
+                await plugin_harness.load_plugin(MockGPIOInput, gpio_config.id, gpio_config.props)
 
     @pytest.mark.asyncio
     async def test_cbpi_integration(self, plugin_harness, gpio_config, mock_gpio):
@@ -387,24 +365,18 @@ class TestGPIOInput:
                 mock_gpio.output(self.gpio_pin, mock_gpio.LOW)
                 await self.cbpi.actor.set_state(self.id, False)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, gpio_config.id, gpio_config.props)
 
         # Test CBPI integration
         await plugin.on()
 
         # Verify CBPI actor system received the state change
         actor_state = await plugin_harness.cbpi.actor.get_state(gpio_config.id)
-        assert (
-            actor_state == True
-        ), "Actor should be in ON state after calling plugin.on()"
+        assert actor_state == True, "Actor should be in ON state after calling plugin.on()"
 
         await plugin.off()
         actor_state = await plugin_harness.cbpi.actor.get_state(gpio_config.id)
-        assert (
-            actor_state == False
-        ), "Actor should be in OFF state after calling plugin.off()"
+        assert actor_state == False, "Actor should be in OFF state after calling plugin.off()"
 
     def test_plugin_configuration_validation(self, gpio_config):
         """Test plugin configuration validation."""
@@ -468,9 +440,7 @@ class TestGPIOInputEdgeCases:
                 mock_gpio.cleanup(self.gpio_pin)
 
         # Should work with default GPIO pin
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, config.id, config.props)
 
         assert plugin.gpio_pin == 18  # Default value
         mock_gpio.setup.assert_called_with(18, mock_gpio.OUT)
@@ -502,18 +472,14 @@ class TestGPIOInputEdgeCases:
             async def on_stop(self):
                 mock_gpio.cleanup(self.gpio_pin)
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInput, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInput, config.id, config.props)
 
         # Should default to False for invalid inverted value
         assert plugin.inverted == False
 
     @pytest.mark.timeout(5)
     @pytest.mark.asyncio
-    async def test_async_operations_timeout(
-        self, plugin_harness, gpio_config, mock_gpio
-    ):
+    async def test_async_operations_timeout(self, plugin_harness, gpio_config, mock_gpio):
         """Test that async operations don't hang indefinitely."""
 
         class SlowMockGPIOInput:
@@ -546,9 +512,7 @@ class TestGPIOInputEdgeCases:
                 mock_gpio.output(self.gpio_pin, mock_gpio.LOW)
 
         # All operations should complete within timeout
-        plugin = await plugin_harness.load_plugin(
-            SlowMockGPIOInput, gpio_config.id, gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(SlowMockGPIOInput, gpio_config.id, gpio_config.props)
 
         await plugin.on()
         assert plugin.state == True

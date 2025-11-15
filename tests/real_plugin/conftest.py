@@ -44,14 +44,14 @@ _mock_cbpi_api.parameters = mock.MagicMock()
 _mock_cbpi_api.CBPiBase = mock.MagicMock()
 
 # Install mocks globally
-sys.modules['cbpi'] = mock.MagicMock()
-sys.modules['cbpi.api'] = _mock_cbpi_api
-sys.modules['cbpi.api.config'] = mock.MagicMock()
-sys.modules['cbpi.api.actor'] = mock.MagicMock(CBPiActor=MockCBPiActorBase)
-sys.modules['cbpi.api.base'] = mock.MagicMock()
-sys.modules['cbpi.api.dataclasses'] = mock.MagicMock()
-sys.modules['cbpi.api.step'] = mock.MagicMock()
-sys.modules['cbpi.api.sensor'] = mock.MagicMock(CBPiSensor=MockCBPiSensorBase)
+sys.modules["cbpi"] = mock.MagicMock()
+sys.modules["cbpi.api"] = _mock_cbpi_api
+sys.modules["cbpi.api.config"] = mock.MagicMock()
+sys.modules["cbpi.api.actor"] = mock.MagicMock(CBPiActor=MockCBPiActorBase)
+sys.modules["cbpi.api.base"] = mock.MagicMock()
+sys.modules["cbpi.api.dataclasses"] = mock.MagicMock()
+sys.modules["cbpi.api.step"] = mock.MagicMock()
+sys.modules["cbpi.api.sensor"] = mock.MagicMock(CBPiSensor=MockCBPiSensorBase)
 
 
 # =============================================================================
@@ -132,17 +132,20 @@ def mock_rpi_gpio():
     mock_cbpi_api.parameters = mock.MagicMock()
     mock_cbpi_api.CBPiBase = mock.MagicMock()
 
-    with mock.patch.dict('sys.modules', {
-        'RPi': mock.MagicMock(),
-        'RPi.GPIO': mock_gpio,
-        'cbpi': mock.MagicMock(),
-        'cbpi.api': mock_cbpi_api,
-        'cbpi.api.config': mock.MagicMock(),
-        'cbpi.api.actor': mock.MagicMock(CBPiActor=MockCBPiActorBase),
-        'cbpi.api.base': mock.MagicMock(CBPiBase=mock.MagicMock()),
-        'cbpi.api.dataclasses': mock.MagicMock(),
-        'cbpi.api.step': mock.MagicMock(),
-    }):
+    with mock.patch.dict(
+        "sys.modules",
+        {
+            "RPi": mock.MagicMock(),
+            "RPi.GPIO": mock_gpio,
+            "cbpi": mock.MagicMock(),
+            "cbpi.api": mock_cbpi_api,
+            "cbpi.api.config": mock.MagicMock(),
+            "cbpi.api.actor": mock.MagicMock(CBPiActor=MockCBPiActorBase),
+            "cbpi.api.base": mock.MagicMock(CBPiBase=mock.MagicMock()),
+            "cbpi.api.dataclasses": mock.MagicMock(),
+            "cbpi.api.step": mock.MagicMock(),
+        },
+    ):
         yield mock_gpio
 
 
@@ -196,25 +199,24 @@ def mock_adafruit_hardware():
     mock_ads = mock.MagicMock()
     mock_analog_in = mock.MagicMock()
 
-    with mock.patch.dict('sys.modules', {
-        'busio': mock.MagicMock(I2C=lambda *args, **kwargs: mock_i2c),
-        'board': mock_board,
-        'adafruit_ht16k33': mock.MagicMock(),
-        'adafruit_ht16k33.segments': mock.MagicMock(
-            Seg7x4=lambda *args, **kwargs: mock_segment_display
-        ),
-        'adafruit_ads1x15': mock.MagicMock(),
-        'adafruit_ads1x15.ads1115': mock.MagicMock(ADS1115=lambda *args: mock_ads),
-        'adafruit_ads1x15.analog_in': mock.MagicMock(
-            AnalogIn=lambda *args: mock_analog_in
-        ),
-    }):
+    with mock.patch.dict(
+        "sys.modules",
+        {
+            "busio": mock.MagicMock(I2C=lambda *args, **kwargs: mock_i2c),
+            "board": mock_board,
+            "adafruit_ht16k33": mock.MagicMock(),
+            "adafruit_ht16k33.segments": mock.MagicMock(Seg7x4=lambda *args, **kwargs: mock_segment_display),
+            "adafruit_ads1x15": mock.MagicMock(),
+            "adafruit_ads1x15.ads1115": mock.MagicMock(ADS1115=lambda *args: mock_ads),
+            "adafruit_ads1x15.analog_in": mock.MagicMock(AnalogIn=lambda *args: mock_analog_in),
+        },
+    ):
         yield {
-            'i2c': mock_i2c,
-            'board': mock_board,
-            'segment_display': mock_segment_display,
-            'ads1115': mock_ads,
-            'analog_in': mock_analog_in,
+            "i2c": mock_i2c,
+            "board": mock_board,
+            "segment_display": mock_segment_display,
+            "ads1115": mock_ads,
+            "analog_in": mock_analog_in,
         }
 
 
@@ -223,7 +225,7 @@ def mock_smbus_module(mock_smbus):
     """
     Automatically mock the smbus module to return our mock SMBus.
     """
-    with mock.patch('smbus.SMBus', return_value=mock_smbus):
+    with mock.patch("smbus.SMBus", return_value=mock_smbus):
         yield mock_smbus
 
 
@@ -285,6 +287,7 @@ def plugin_loader():
             SSDisplay = plugin_loader("7SegDisplay", "SSDisplay")
             # Now you can instantiate SSDisplay
     """
+
     def load_plugin_class(plugin_name: str, class_name: str):
         """
         Load a real plugin class from its module.
@@ -359,13 +362,8 @@ def standard_lcd_config():
 # Markers for Test Organization
 # =============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers for real plugin tests."""
-    config.addinivalue_line(
-        "markers",
-        "real_plugin: marks tests as testing real plugin code (not mocks)"
-    )
-    config.addinivalue_line(
-        "markers",
-        "requires_hardware_mock: marks tests requiring hardware mocking"
-    )
+    config.addinivalue_line("markers", "real_plugin: marks tests as testing real plugin code (not mocks)")
+    config.addinivalue_line("markers", "requires_hardware_mock: marks tests requiring hardware mocking")

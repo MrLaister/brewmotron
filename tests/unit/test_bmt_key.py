@@ -62,9 +62,7 @@ class TestBMTKey:
                 self.cbpi = cbpi
                 self.actors = []
                 self.settinggroupname = "BMT-Key_"
-                self.settingDescription = (
-                    "Select an Actor to indicate when this mode is active (high)"
-                )
+                self.settingDescription = "Select an Actor to indicate when this mode is active (high)"
                 self.keyStates = [
                     ("Off", "OFF_State", ""),
                     ("Clean", "Clean_State", ""),
@@ -74,9 +72,7 @@ class TestBMTKey:
                 self.mode = self.keyStates[0][0]
                 self._task = None
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTKey, bmt_key_config.id, bmt_key_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTKey, bmt_key_config.id, bmt_key_config.props)
 
         # Verify initialization
         assert plugin.mode == "Off"
@@ -95,9 +91,7 @@ class TestBMTKey:
                 self.cbpi = cbpi
                 self.actors = []
                 self.settinggroupname = "BMT-Key_"
-                self.settingDescription = (
-                    "Select an Actor to indicate when this mode is active (high)"
-                )
+                self.settingDescription = "Select an Actor to indicate when this mode is active (high)"
                 self.keyStates = [
                     ("Off", "OFF_State", ""),
                     ("Clean", "Clean_State", ""),
@@ -122,9 +116,7 @@ class TestBMTKey:
                 truecount = 0
 
                 for modeName, modeID, actorID in self.keyStates:
-                    actorID = await self.get_mode_actorID(
-                        modeName, self.settingDescription
-                    )
+                    actorID = await self.get_mode_actorID(modeName, self.settingDescription)
                     # Mock actor state - simulate Clean mode active
                     if modeName == "Clean":
                         modeState = True
@@ -141,9 +133,7 @@ class TestBMTKey:
 
                 return truecount, newModeList
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTKey, bmt_key_config.id, bmt_key_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTKey, bmt_key_config.id, bmt_key_config.props)
 
         # Test state checking
         truecount, active_modes = await plugin.check_state()
@@ -187,9 +177,7 @@ class TestBMTKey:
                 self.hp_actors_enabled = True
                 self.hp_actors_disabled = False
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTKey, bmt_key_config.id, bmt_key_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTKey, bmt_key_config.id, bmt_key_config.props)
 
         # Test Off mode
         plugin.enableMode("Off")
@@ -251,9 +239,7 @@ class TestBMTKey:
 
                 return len([a for a in mock_actors if a["type"] == actorPluginType])
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTKey, bmt_key_config.id, bmt_key_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTKey, bmt_key_config.id, bmt_key_config.props)
 
         # Test loading OneAtATime actors
         count = plugin.loadActorValues("OneAtATimeActor")
@@ -275,9 +261,7 @@ class TestBMTKey:
             def __init__(self, cbpi):
                 self.cbpi = cbpi
                 self.settinggroupname = "BMT-Key_"
-                self.settingDescription = (
-                    "Select an Actor to indicate when this mode is active (high)"
-                )
+                self.settingDescription = "Select an Actor to indicate when this mode is active (high)"
 
             async def get_mode_actorID(self, stateName, settingDescription):
                 """Mock configuration parameter management."""
@@ -288,18 +272,14 @@ class TestBMTKey:
 
                 if mode_actorID is None:
                     # Simulate adding new config parameter
-                    await self.cbpi.config.add(
-                        settingsName, "", "ACTOR", settingDescription
-                    )
+                    await self.cbpi.config.add(settingsName, "", "ACTOR", settingDescription)
                     mode_actorID = f"actor_{stateName.lower()}_1"
                     # Update the mock config
                     self.cbpi.config._config_data[settingsName] = mode_actorID
 
                 return mode_actorID
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTKey, bmt_key_config.id, bmt_key_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTKey, bmt_key_config.id, bmt_key_config.props)
 
         # Test configuration parameter creation
         actor_id = await plugin.get_mode_actorID("Off", plugin.settingDescription)
@@ -318,9 +298,7 @@ class TestBMTKey:
                 self.cbpi = cbpi
                 self.actors = []
                 self.settinggroupname = "BMT-Key_"
-                self.settingDescription = (
-                    "Select an Actor to indicate when this mode is active (high)"
-                )
+                self.settingDescription = "Select an Actor to indicate when this mode is active (high)"
                 self.keyStates = [
                     ("Off", "OFF_State", ""),
                     ("Clean", "Clean_State", ""),
@@ -357,15 +335,11 @@ class TestBMTKey:
                         self.mode = self.newMode
                         self.enableMode(self.mode)
                 elif truecount > 1:
-                    self.warning_messages.append(
-                        "WARNING - Multiple key states detected"
-                    )
+                    self.warning_messages.append("WARNING - Multiple key states detected")
 
                 return truecount, newModeList
 
-        plugin = await plugin_harness.load_plugin(
-            MockBMTKey, bmt_key_config.id, bmt_key_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockBMTKey, bmt_key_config.id, bmt_key_config.props)
 
         # Test multiple active states
         truecount, active_modes = await plugin.check_state()
@@ -422,9 +396,7 @@ class TestBMTKeyEdgeCases:
 
                 return truecount, newModeList
 
-        config = ExtensionConfigFactory(
-            id="test_no_states", name="TestNoStates", props={}
-        )
+        config = ExtensionConfigFactory(id="test_no_states", name="TestNoStates", props={})
 
         plugin = await plugin_harness.load_plugin(MockBMTKey, config.id, config.props)
 
@@ -445,9 +417,7 @@ class TestBMTKeyEdgeCases:
             def __init__(self, cbpi):
                 self.cbpi = cbpi
                 self.settinggroupname = "BMT-Key_"
-                self.settingDescription = (
-                    "Select an Actor to indicate when this mode is active (high)"
-                )
+                self.settingDescription = "Select an Actor to indicate when this mode is active (high)"
                 self.config_errors = []
 
             async def get_mode_actorID(self, stateName, settingDescription):
@@ -461,16 +431,12 @@ class TestBMTKeyEdgeCases:
                         # Simulate config.add failure
                         raise Exception("Config add failed")
                     except Exception as e:
-                        self.config_errors.append(
-                            f"Unable to update config for {settingsName}: {e}"
-                        )
+                        self.config_errors.append(f"Unable to update config for {settingsName}: {e}")
                         mode_actorID = None
 
                 return mode_actorID
 
-        config = ExtensionConfigFactory(
-            id="test_config_error", name="TestConfigError", props={}
-        )
+        config = ExtensionConfigFactory(id="test_config_error", name="TestConfigError", props={})
 
         plugin = await plugin_harness.load_plugin(MockBMTKey, config.id, config.props)
 
@@ -502,9 +468,7 @@ class TestBMTKeyEdgeCases:
                     self.load_errors.append(str(e))
                     return 0
 
-        config = ExtensionConfigFactory(
-            id="test_actor_error", name="TestActorError", props={}
-        )
+        config = ExtensionConfigFactory(id="test_actor_error", name="TestActorError", props={})
 
         plugin = await plugin_harness.load_plugin(MockBMTKey, config.id, config.props)
 

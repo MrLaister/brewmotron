@@ -103,9 +103,7 @@ class PluginConfigFactory(Factory):
         lambda obj: {
             "GPIO": random.randint(1, 27) if obj.type == "Actor" else None,
             "Inverted": random.choice(["Yes", "No"]),
-            "I2C_Address": (
-                f"0x{random.randint(0x20, 0x77):02X}" if obj.type == "Sensor" else None
-            ),
+            "I2C_Address": (f"0x{random.randint(0x20, 0x77):02X}" if obj.type == "Sensor" else None),
         }
     )
 
@@ -376,9 +374,7 @@ class BrewmotronTestData:
                 type="Actor",
                 props={"actor": None, "OneAtATime group": 1},
             ),
-            PluginConfig(
-                id="nor3_logic", name="NOR3", type="Actor", props={"actor": None}
-            ),
+            PluginConfig(id="nor3_logic", name="NOR3", type="Actor", props={"actor": None}),
         ]
 
     @staticmethod
@@ -615,9 +611,7 @@ def generate_sensor_readings(
     return readings
 
 
-def generate_actor_state_history(
-    actor_id: str, duration_minutes: int = 120
-) -> List[ActorState]:
+def generate_actor_state_history(actor_id: str, duration_minutes: int = 120) -> List[ActorState]:
     """Generate actor state change history."""
     states = []
     current_time = datetime.now() - timedelta(minutes=duration_minutes)
@@ -651,9 +645,7 @@ def generate_brewing_session_data() -> Dict[str, Any]:
         "session_id": session_id,
         "start_time": start_time,
         "recipe": BrewmotronTestData.get_sample_brewing_recipe(),
-        "temperature_readings": generate_sensor_readings(
-            "mash_temp", 480, 20.0, 45.0  # 8 hours of readings
-        ),
+        "temperature_readings": generate_sensor_readings("mash_temp", 480, 20.0, 45.0),  # 8 hours of readings
         "actor_states": {
             "pump": generate_actor_state_history("pump", 480),
             "heater": generate_actor_state_history("heater", 480),

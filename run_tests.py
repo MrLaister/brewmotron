@@ -46,9 +46,7 @@ def install_dependencies():
     )
 
 
-def run_unit_tests(
-    verbose: bool = False, coverage: bool = True, pattern: Optional[str] = None
-) -> int:
+def run_unit_tests(verbose: bool = False, coverage: bool = True, pattern: Optional[str] = None) -> int:
     """Run unit tests."""
     cmd = [sys.executable, "-m", "pytest", "tests/unit/"]
 
@@ -249,14 +247,10 @@ def run_security_checks() -> int:
         return 1
 
     # Run safety check
-    safety_result = run_command(
-        ["safety", "check"], "Safety Vulnerability Check", check=False
-    )
+    safety_result = run_command(["safety", "check"], "Safety Vulnerability Check", check=False)
 
     # Run bandit security check
-    bandit_result = run_command(
-        ["bandit", "-r", ".", "-f", "txt"], "Bandit Security Check", check=False
-    )
+    bandit_result = run_command(["bandit", "-r", ".", "-f", "txt"], "Bandit Security Check", check=False)
 
     return max(safety_result, bandit_result)
 
@@ -303,9 +297,7 @@ def check_test_environment():
 
     # Check Python version
     if sys.version_info < (3, 9):
-        issues.append(
-            f"Python 3.9+ required, found {sys.version_info.major}.{sys.version_info.minor}"
-        )
+        issues.append(f"Python 3.9+ required, found {sys.version_info.major}.{sys.version_info.minor}")
 
     # Check if requirements file exists
     if not Path("requirements-test.txt").exists():
@@ -373,13 +365,9 @@ Examples:
         help="Test command to run",
     )
 
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable verbose output"
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose output")
 
-    parser.add_argument(
-        "--fast", action="store_true", help="Skip slow tests (for 'all' command)"
-    )
+    parser.add_argument("--fast", action="store_true", help="Skip slow tests (for 'all' command)")
 
     parser.add_argument(
         "--no-cov",
@@ -387,9 +375,7 @@ Examples:
         help="Disable coverage reporting (for 'unit' command)",
     )
 
-    parser.add_argument(
-        "-k", "--pattern", help="Run tests matching pattern (for 'unit' command)"
-    )
+    parser.add_argument("-k", "--pattern", help="Run tests matching pattern (for 'unit' command)")
 
     args = parser.parse_args()
 
@@ -398,9 +384,7 @@ Examples:
 
     # Route to appropriate function
     if args.command == "unit":
-        return run_unit_tests(
-            verbose=args.verbose, coverage=not args.no_cov, pattern=args.pattern
-        )
+        return run_unit_tests(verbose=args.verbose, coverage=not args.no_cov, pattern=args.pattern)
     elif args.command == "integration":
         return run_integration_tests(verbose=args.verbose)
     elif args.command == "hardware":

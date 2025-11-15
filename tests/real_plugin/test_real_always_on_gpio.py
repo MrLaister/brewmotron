@@ -31,9 +31,7 @@ class TestRealAlwaysONGPIO:
     """Test suite for the REAL AlwaysONGPIO plugin."""
 
     @pytest.mark.asyncio
-    async def test_plugin_loads_and_initializes(
-        self, plugin_harness, real_always_on_gpio_class
-    ):
+    async def test_plugin_loads_and_initializes(self, plugin_harness, real_always_on_gpio_class):
         """
         Test that the real plugin can be loaded and initialized.
 
@@ -46,22 +44,16 @@ class TestRealAlwaysONGPIO:
         }
 
         # Load the REAL plugin (not a mock!)
-        plugin = await plugin_harness.load_plugin(
-            real_always_on_gpio_class,
-            "test_always_on",
-            config
-        )
+        plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_always_on", config)
 
         # Verify plugin loaded correctly
         assert plugin is not None
-        assert hasattr(plugin, 'cbpi')
-        assert hasattr(plugin, 'id')
+        assert hasattr(plugin, "cbpi")
+        assert hasattr(plugin, "id")
         assert plugin.id == "test_always_on"
 
     @pytest.mark.asyncio
-    async def test_gpio_configuration_parsing(
-        self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio
-    ):
+    async def test_gpio_configuration_parsing(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
         Test that the plugin correctly parses GPIO configuration.
 
@@ -75,11 +67,7 @@ class TestRealAlwaysONGPIO:
             "Inverted": "Yes",
         }
 
-        plugin = await plugin_harness.load_plugin(
-            real_always_on_gpio_class,
-            "test_gpio_config",
-            config
-        )
+        plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_gpio_config", config)
 
         # Give plugin time to configure GPIO
         await asyncio.sleep(0.1)
@@ -91,9 +79,7 @@ class TestRealAlwaysONGPIO:
         assert plugin.props.get("Inverted") == "Yes"
 
     @pytest.mark.asyncio
-    async def test_normal_logic_output(
-        self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio
-    ):
+    async def test_normal_logic_output(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
         Test GPIO output with normal (non-inverted) logic.
 
@@ -106,11 +92,7 @@ class TestRealAlwaysONGPIO:
             "Inverted": "No",
         }
 
-        plugin = await plugin_harness.load_plugin(
-            real_always_on_gpio_class,
-            "test_normal_logic",
-            config
-        )
+        plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_normal_logic", config)
 
         # Give plugin time to set GPIO
         await asyncio.sleep(0.1)
@@ -123,9 +105,7 @@ class TestRealAlwaysONGPIO:
         assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH
 
     @pytest.mark.asyncio
-    async def test_inverted_logic_output(
-        self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio
-    ):
+    async def test_inverted_logic_output(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
         Test GPIO output with inverted logic.
 
@@ -138,11 +118,7 @@ class TestRealAlwaysONGPIO:
             "Inverted": "Yes",
         }
 
-        plugin = await plugin_harness.load_plugin(
-            real_always_on_gpio_class,
-            "test_inverted_logic",
-            config
-        )
+        plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_inverted_logic", config)
 
         # Give plugin time to set GPIO
         await asyncio.sleep(0.1)
@@ -151,9 +127,7 @@ class TestRealAlwaysONGPIO:
         assert mock_rpi_gpio._pin_states.get(22) == mock_rpi_gpio.LOW
 
     @pytest.mark.asyncio
-    async def test_plugin_cleanup(
-        self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio
-    ):
+    async def test_plugin_cleanup(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
         Test that plugin properly cleans up GPIO on stop.
 
@@ -166,11 +140,7 @@ class TestRealAlwaysONGPIO:
             "Inverted": "No",
         }
 
-        plugin = await plugin_harness.load_plugin(
-            real_always_on_gpio_class,
-            "test_cleanup",
-            config
-        )
+        plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_cleanup", config)
 
         await asyncio.sleep(0.1)
 
@@ -178,16 +148,14 @@ class TestRealAlwaysONGPIO:
         assert mock_rpi_gpio._pin_states.get(23) == mock_rpi_gpio.HIGH
 
         # Stop the plugin
-        if hasattr(plugin, 'on_stop'):
+        if hasattr(plugin, "on_stop"):
             await plugin.on_stop()
 
         # GPIO should be set to safe state (LOW)
         assert mock_rpi_gpio._pin_states.get(23) == mock_rpi_gpio.LOW
 
     @pytest.mark.asyncio
-    async def test_multiple_instances_different_pins(
-        self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio
-    ):
+    async def test_multiple_instances_different_pins(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
         Test that multiple instances can control different GPIO pins.
 
@@ -196,28 +164,22 @@ class TestRealAlwaysONGPIO:
         """
         # Load first instance on GPIO 18
         plugin1 = await plugin_harness.load_plugin(
-            real_always_on_gpio_class,
-            "always_on_1",
-            {"GPIO": "18", "Inverted": "No"}
+            real_always_on_gpio_class, "always_on_1", {"GPIO": "18", "Inverted": "No"}
         )
 
         # Load second instance on GPIO 19
         plugin2 = await plugin_harness.load_plugin(
-            real_always_on_gpio_class,
-            "always_on_2",
-            {"GPIO": "19", "Inverted": "Yes"}
+            real_always_on_gpio_class, "always_on_2", {"GPIO": "19", "Inverted": "Yes"}
         )
 
         await asyncio.sleep(0.1)
 
         # Both should be configured independently
         assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH  # Normal
-        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.LOW   # Inverted
+        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.LOW  # Inverted
 
     @pytest.mark.asyncio
-    async def test_invalid_gpio_handling(
-        self, plugin_harness, real_always_on_gpio_class
-    ):
+    async def test_invalid_gpio_handling(self, plugin_harness, real_always_on_gpio_class):
         """
         Test that plugin handles invalid GPIO configuration gracefully.
 
@@ -237,11 +199,7 @@ class TestRealAlwaysONGPIO:
         # - Fail during GPIO setup
 
         try:
-            plugin = await plugin_harness.load_plugin(
-                real_always_on_gpio_class,
-                "test_invalid",
-                config
-            )
+            plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_invalid", config)
             await asyncio.sleep(0.1)
             # If it doesn't raise, verify it handled it somehow
             # (this is a documentation test)
@@ -254,9 +212,7 @@ class TestRealAlwaysONGPIOEdgeCases:
     """Edge case tests for the REAL AlwaysONGPIO plugin."""
 
     @pytest.mark.asyncio
-    async def test_missing_gpio_parameter(
-        self, plugin_harness, real_always_on_gpio_class
-    ):
+    async def test_missing_gpio_parameter(self, plugin_harness, real_always_on_gpio_class):
         """Test behavior when GPIO parameter is missing."""
         config = {
             "Inverted": "No",
@@ -265,11 +221,7 @@ class TestRealAlwaysONGPIOEdgeCases:
 
         # Document actual behavior with missing required parameter
         try:
-            plugin = await plugin_harness.load_plugin(
-                real_always_on_gpio_class,
-                "test_missing_gpio",
-                config
-            )
+            plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_missing_gpio", config)
             # If it loads, check what default it uses
             await asyncio.sleep(0.1)
         except (KeyError, ValueError) as e:
@@ -277,9 +229,7 @@ class TestRealAlwaysONGPIOEdgeCases:
             pass
 
     @pytest.mark.asyncio
-    async def test_rapid_start_stop_cycles(
-        self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio
-    ):
+    async def test_rapid_start_stop_cycles(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
         Test plugin stability under rapid start/stop cycles.
 
@@ -288,16 +238,12 @@ class TestRealAlwaysONGPIOEdgeCases:
         config = {"GPIO": "24", "Inverted": "No"}
 
         for cycle in range(5):
-            plugin = await plugin_harness.load_plugin(
-                real_always_on_gpio_class,
-                f"test_cycle_{cycle}",
-                config
-            )
+            plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, f"test_cycle_{cycle}", config)
 
             await asyncio.sleep(0.05)
             assert mock_rpi_gpio._pin_states.get(24) == mock_rpi_gpio.HIGH
 
-            if hasattr(plugin, 'on_stop'):
+            if hasattr(plugin, "on_stop"):
                 await plugin.on_stop()
 
             await asyncio.sleep(0.05)

@@ -15,9 +15,7 @@ logger = logging.getLogger(__name__)
 
 @parameters(
     [
-        Property.Actor(
-            label="actor", description="Select an actor to be controlled by this group."
-        ),
+        Property.Actor(label="actor", description="Select an actor to be controlled by this group."),
         Property.Select(
             label="OneAtATime group",
             options=[1, 2, 3, 4, 5],
@@ -66,13 +64,7 @@ class OneAtATime(CBPiActor):
                         print(actor + " is being turned off")
                         await self.cbpi.actor.off(actor)
                 logger.info("Actor " + self.props["actor"] + " ON")
-                print(
-                    "OneAtATime Actor: I am:"
-                    + self.id
-                    + ", processing Actor:"
-                    + self.props["actor"]
-                    + " ON"
-                )
+                print("OneAtATime Actor: I am:" + self.id + ", processing Actor:" + self.props["actor"] + " ON")
                 self.state = True
                 if self.power is None:
                     self.power = 100
@@ -98,15 +90,9 @@ class OneAtATime(CBPiActor):
             logger.info("Started looking for saved OneAtATime actors")
             self.actors = []
             for actor in actors:
-                if (
-                    actor["type"] == actorPluginType
-                    and actor["props"][self.group] == self.props[self.group]
-                ):
+                if actor["type"] == actorPluginType and actor["props"][self.group] == self.props[self.group]:
                     logger.info(
-                        "appending actor list with "
-                        + actor["props"]["actor"]
-                        + " with controller ID "
-                        + actor["id"]
+                        "appending actor list with " + actor["props"]["actor"] + " with controller ID " + actor["id"]
                     )
                     self.actors.append(actor["id"])
                     self.actors.append(actor["props"]["actor"])

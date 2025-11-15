@@ -36,9 +36,7 @@ for plugin_dir in PLUGIN_DIRS:
         sys.path.insert(0, str(plugin_dir))
 
 # Configure logging for tests
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 # Disable noisy loggers during testing
 logging.getLogger("asyncio").setLevel(logging.WARNING)
@@ -51,16 +49,12 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 def pytest_configure(config):
     """Configure pytest with custom markers and settings."""
-    config.addinivalue_line(
-        "markers", "hardware: mark test as requiring hardware simulation"
-    )
+    config.addinivalue_line("markers", "hardware: mark test as requiring hardware simulation")
     config.addinivalue_line("markers", "slow: mark test as slow running")
     config.addinivalue_line("markers", "integration: mark test as integration test")
     config.addinivalue_line("markers", "i2c: mark test as requiring I2C hardware")
     config.addinivalue_line("markers", "gpio: mark test as requiring GPIO hardware")
-    config.addinivalue_line(
-        "markers", "network: mark test as requiring network connectivity"
-    )
+    config.addinivalue_line("markers", "network: mark test as requiring network connectivity")
 
 
 def pytest_collection_modifyitems(config, items):
@@ -136,9 +130,7 @@ def mock_hardware_environment():
     ]
 
     # Mock RPLCD for LCD display
-    rplcd_patches = [
-        patch.dict("sys.modules", {"RPLCD": MagicMock(), "RPLCD.i2c": MagicMock()})
-    ]
+    rplcd_patches = [patch.dict("sys.modules", {"RPLCD": MagicMock(), "RPLCD.i2c": MagicMock()})]
 
     all_patches = gpio_patches + smbus_patches + adafruit_patches + rplcd_patches
 
@@ -175,10 +167,7 @@ def mock_gpio():
                 gpio_mock._pin_states[pin] = gpio_mock.LOW
 
         def output_side_effect(pin, value):
-            if (
-                pin in gpio_mock._pin_modes
-                and gpio_mock._pin_modes[pin] == gpio_mock.OUT
-            ):
+            if pin in gpio_mock._pin_modes and gpio_mock._pin_modes[pin] == gpio_mock.OUT:
                 gpio_mock._pin_states[pin] = value
 
         def input_side_effect(pin):

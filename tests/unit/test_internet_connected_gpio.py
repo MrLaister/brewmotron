@@ -98,9 +98,7 @@ class TestInternetConnectedGPIO:
         assert plugin.power == 100
 
     @pytest.mark.asyncio
-    async def test_internet_connectivity_detection(
-        self, plugin_harness, internet_gpio_config
-    ):
+    async def test_internet_connectivity_detection(self, plugin_harness, internet_gpio_config):
         """Test network connectivity detection."""
 
         class MockGPIOInternetConnected:
@@ -163,9 +161,7 @@ class TestInternetConnectedGPIO:
         assert plugin.ping_results[2]["connected"] == True
 
     @pytest.mark.asyncio
-    async def test_ping_loop_state_transitions(
-        self, plugin_harness, internet_gpio_config
-    ):
+    async def test_ping_loop_state_transitions(self, plugin_harness, internet_gpio_config):
         """Test ping loop behavior and state transitions."""
 
         class MockGPIOInternetConnected:
@@ -330,9 +326,7 @@ class TestInternetConnectedGPIO:
 
                 return refreshtime
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInternetConnected, custom_config.id, custom_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInternetConnected, custom_config.id, custom_config.props)
 
         # Test sleep time calculation
         connected_sleep = plugin.get_sleep_time(True)
@@ -425,9 +419,7 @@ class TestInternetConnectedGPIOEdgeCases:
                     self.gpio_errors.append("No GPIO configured for LOW")
                 self.state = False
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInternetConnected, no_gpio_config.id, no_gpio_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInternetConnected, no_gpio_config.id, no_gpio_config.props)
 
         # Test GPIO operations with missing configuration
         await plugin.on()
@@ -486,9 +478,7 @@ class TestInternetConnectedGPIOEdgeCases:
             props={"GPIO": 20, "SleepTime_Connected": 30, "SleepTime_Disconnected": 5},
         )
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInternetConnected, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInternetConnected, config.id, config.props)
 
         # Test network failure scenarios
         result1 = plugin.check_connected()  # Network unreachable
@@ -560,17 +550,13 @@ class TestInternetConnectedGPIOEdgeCases:
                                 try:
                                     asyncio.create_task(self.on())
                                 except Exception as e:
-                                    self.exceptions_caught.append(
-                                        f"Task creation error (on): {e}"
-                                    )
+                                    self.exceptions_caught.append(f"Task creation error (on): {e}")
                             else:
                                 self.state = False
                                 try:
                                     asyncio.create_task(self.off())
                                 except Exception as e:
-                                    self.exceptions_caught.append(
-                                        f"Task creation error (off): {e}"
-                                    )
+                                    self.exceptions_caught.append(f"Task creation error (off): {e}")
 
                     except Exception as e:
                         self.exceptions_caught.append(f"Ping loop error: {e}")
@@ -583,22 +569,14 @@ class TestInternetConnectedGPIOEdgeCases:
             props={"GPIO": 21, "SleepTime_Connected": 30, "SleepTime_Disconnected": 5},
         )
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInternetConnected, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInternetConnected, config.id, config.props)
 
         # Test exception handling in ping loop
         await plugin.pingloop_with_error_handling()
 
-        assert (
-            len(plugin.exceptions_caught) >= 2
-        )  # At least the connectivity check exceptions
-        assert any(
-            "Connection check failed #1" in exc for exc in plugin.exceptions_caught
-        )
-        assert any(
-            "Connection check failed #2" in exc for exc in plugin.exceptions_caught
-        )
+        assert len(plugin.exceptions_caught) >= 2  # At least the connectivity check exceptions
+        assert any("Connection check failed #1" in exc for exc in plugin.exceptions_caught)
+        assert any("Connection check failed #2" in exc for exc in plugin.exceptions_caught)
 
     @pytest.mark.asyncio
     async def test_default_sleep_time_fallback(self, plugin_harness):
@@ -625,13 +603,9 @@ class TestInternetConnectedGPIOEdgeCases:
             def get_sleep_time_with_defaults(self, connected_state):
                 """Test sleep time with default fallback."""
                 if connected_state:
-                    refreshtime = self.props.get(
-                        "SleepTime_Connected", 30
-                    )  # Default 30
+                    refreshtime = self.props.get("SleepTime_Connected", 30)  # Default 30
                 else:
-                    refreshtime = self.props.get(
-                        "SleepTime_Disconnected", 1
-                    )  # Default 1
+                    refreshtime = self.props.get("SleepTime_Disconnected", 1)  # Default 1
 
                 self.default_sleep_tests.append(
                     {
@@ -643,9 +617,7 @@ class TestInternetConnectedGPIOEdgeCases:
 
                 return refreshtime
 
-        plugin = await plugin_harness.load_plugin(
-            MockGPIOInternetConnected, minimal_config.id, minimal_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockGPIOInternetConnected, minimal_config.id, minimal_config.props)
 
         # Test default sleep time fallback
         connected_sleep = plugin.get_sleep_time_with_defaults(True)

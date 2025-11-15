@@ -58,9 +58,7 @@ class TestLCDisplay:
         )
 
     @pytest.mark.asyncio
-    async def test_plugin_initialization_multidisplay_mode(
-        self, plugin_harness, display_config, mock_lcd
-    ):
+    async def test_plugin_initialization_multidisplay_mode(self, plugin_harness, display_config, mock_lcd):
         """Test plugin initialization in multidisplay mode."""
 
         class MockLCDisplay:
@@ -151,9 +149,7 @@ class TestLCDisplay:
 
                     await asyncio.sleep(self.refresh_rate)
 
-        plugin = await plugin_harness.load_plugin(
-            MockLCDisplay, display_config.id, display_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockLCDisplay, display_config.id, display_config.props)
 
         assert plugin.running == True
         assert plugin.lcd_address == 0x27
@@ -236,9 +232,7 @@ class TestLCDisplay:
         assert len(unique_screens) >= 2
 
     @pytest.mark.asyncio
-    async def test_lcd_hardware_communication(
-        self, plugin_harness, display_config, mock_lcd
-    ):
+    async def test_lcd_hardware_communication(self, plugin_harness, display_config, mock_lcd):
         """Test LCD hardware communication and error handling."""
 
         class MockLCDisplay:
@@ -360,9 +354,7 @@ class TestLCDisplay:
             # Verify address immediately after loading (on_start was
             # already called by load_plugin)
             expected_addr = addr
-            assert (
-                display.lcd_address == expected_addr
-            ), f"Expected {expected_addr}, got {display.lcd_address}"
+            assert display.lcd_address == expected_addr, f"Expected {expected_addr}, got {display.lcd_address}"
 
             displays.append(display)
 
@@ -547,9 +539,7 @@ class TestLCDisplayEdgeCases:
 
             async def _connection_loop(self):
                 """Attempt to maintain LCD connection."""
-                while (
-                    self.running and self.connection_attempts < 10
-                ):  # Limit attempts for testing
+                while self.running and self.connection_attempts < 10:  # Limit attempts for testing
                     if self.lcd is None:
                         self.connection_attempts += 1
                         try:
@@ -559,9 +549,7 @@ class TestLCDisplayEdgeCases:
                                     MockLCDisplay as HardwareMockLCDisplay,
                                 )
 
-                                self.lcd = HardwareMockLCDisplay(
-                                    address=0x27, cols=20, rows=4
-                                )
+                                self.lcd = HardwareMockLCDisplay(address=0x27, cols=20, rows=4)
                                 break  # Exit loop once connected
                         except Exception:
                             pass

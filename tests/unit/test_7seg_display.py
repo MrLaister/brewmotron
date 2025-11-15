@@ -61,9 +61,7 @@ class TestSSDisplay:
         )
 
     @pytest.mark.asyncio
-    async def test_plugin_initialization(
-        self, plugin_harness, display_config, mock_i2c
-    ):
+    async def test_plugin_initialization(self, plugin_harness, display_config, mock_i2c):
         """Test plugin initialization with valid configuration."""
 
         # Mock the SSDisplay class
@@ -116,9 +114,7 @@ class TestSSDisplay:
         assert plugin.refresh_rate == 1.0
 
     @pytest.mark.asyncio
-    async def test_display_temperature_updates(
-        self, plugin_harness, display_config, mock_i2c, mock_7seg_display
-    ):
+    async def test_display_temperature_updates(self, plugin_harness, display_config, mock_i2c, mock_7seg_display):
         """Test temperature display updates."""
 
         class MockSSDisplay:
@@ -161,9 +157,7 @@ class TestSSDisplay:
 
             def get_display_value(self, address):
                 """Get current display value for testing."""
-                return self.displays.get(
-                    address, Mock7SegmentDisplay(address)
-                ).get_display_state()
+                return self.displays.get(address, Mock7SegmentDisplay(address)).get_display_state()
 
         plugin = await plugin_harness.load_plugin(MockSSDisplay, display_config.id, {})
 
@@ -181,9 +175,7 @@ class TestSSDisplay:
         assert boiler_state["display_buffer"] != [0, 0, 0, 0]
 
     @pytest.mark.asyncio
-    async def test_i2c_communication_error_handling(
-        self, plugin_harness, display_config, mock_i2c
-    ):
+    async def test_i2c_communication_error_handling(self, plugin_harness, display_config, mock_i2c):
         """Test handling of I2C communication errors."""
 
         class MockSSDisplay:
@@ -319,9 +311,7 @@ class TestSSDisplayEdgeCases:
             async def on_stop(self):
                 self.running = False
 
-        plugin = await plugin_harness.load_plugin(
-            MockSSDisplay, "test_missing_config", {}
-        )
+        plugin = await plugin_harness.load_plugin(MockSSDisplay, "test_missing_config", {})
 
         # Should use default values
         assert plugin.sparge_address == 0x70
@@ -353,9 +343,7 @@ class TestSSDisplayEdgeCases:
             async def on_stop(self):
                 self.running = False
 
-        plugin = await plugin_harness.load_plugin(
-            MockSSDisplay, "test_invalid_refresh", {}
-        )
+        plugin = await plugin_harness.load_plugin(MockSSDisplay, "test_invalid_refresh", {})
 
         # Should handle invalid refresh rate gracefully
         assert plugin.refresh_rate >= 0.1

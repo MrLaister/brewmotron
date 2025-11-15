@@ -46,9 +46,7 @@ class TestOneAtATime:
         )
 
     @pytest.mark.asyncio
-    async def test_plugin_initialization(
-        self, plugin_harness, coordination_config, mock_gpio
-    ):
+    async def test_plugin_initialization(self, plugin_harness, coordination_config, mock_gpio):
         """Test plugin initialization with coordination parameters."""
 
         class MockOneAtATime:
@@ -77,9 +75,7 @@ class TestOneAtATime:
                 self.running = True
                 mock_gpio.setup(self.gpio, mock_gpio.OUT)
                 if self.inverted:
-                    mock_gpio.output(
-                        self.gpio, mock_gpio.HIGH
-                    )  # OFF state for inverted
+                    mock_gpio.output(self.gpio, mock_gpio.HIGH)  # OFF state for inverted
                 else:
                     mock_gpio.output(self.gpio, mock_gpio.LOW)  # OFF state for normal
 
@@ -103,10 +99,7 @@ class TestOneAtATime:
                 group_state = MockOneAtATime.coordination_groups[self.group]
 
                 # Check if another actor in group is already active
-                if (
-                    group_state["active_actor"] is not None
-                    and group_state["active_actor"] != self.id
-                ):
+                if group_state["active_actor"] is not None and group_state["active_actor"] != self.id:
                     # Add to waiting list
                     if self.id not in group_state["waiting_actors"]:
                         group_state["waiting_actors"].append(self.id)
@@ -145,9 +138,7 @@ class TestOneAtATime:
                         next_actor_id = group_state["waiting_actors"].pop(0)
                         # In real implementation, would signal the next actor to turn on
 
-        plugin = await plugin_harness.load_plugin(
-            MockOneAtATime, coordination_config.id, coordination_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockOneAtATime, coordination_config.id, coordination_config.props)
 
         assert plugin.id == coordination_config.id
         assert plugin.gpio == 18
@@ -161,21 +152,13 @@ class TestOneAtATime:
         assert MockOneAtATime.coordination_groups["heaters"]["active_actor"] is None
 
     @pytest.mark.asyncio
-    async def test_coordination_prevents_simultaneous_operation(
-        self, plugin_harness, mock_gpio
-    ):
+    async def test_coordination_prevents_simultaneous_operation(self, plugin_harness, mock_gpio):
         """Test that only one actor in a group can be active at a time."""
         # Create multiple actors in the same coordination group
         actor_configs = [
-            GPIOActorConfigFactory(
-                id="heater1", props={"GPIO": 18, "CoordinationGroup": "heaters"}
-            ),
-            GPIOActorConfigFactory(
-                id="heater2", props={"GPIO": 19, "CoordinationGroup": "heaters"}
-            ),
-            GPIOActorConfigFactory(
-                id="heater3", props={"GPIO": 20, "CoordinationGroup": "heaters"}
-            ),
+            GPIOActorConfigFactory(id="heater1", props={"GPIO": 18, "CoordinationGroup": "heaters"}),
+            GPIOActorConfigFactory(id="heater2", props={"GPIO": 19, "CoordinationGroup": "heaters"}),
+            GPIOActorConfigFactory(id="heater3", props={"GPIO": 20, "CoordinationGroup": "heaters"}),
         ]
 
         class MockOneAtATime:
@@ -210,10 +193,7 @@ class TestOneAtATime:
             async def on(self, power=100):
                 group_state = MockOneAtATime.coordination_groups[self.group]
 
-                if (
-                    group_state["active_actor"] is not None
-                    and group_state["active_actor"] != self.id
-                ):
+                if group_state["active_actor"] is not None and group_state["active_actor"] != self.id:
                     if self.id not in group_state["waiting_actors"]:
                         group_state["waiting_actors"].append(self.id)
                     return False
@@ -236,9 +216,7 @@ class TestOneAtATime:
         # Load all actors
         actors = []
         for config in actor_configs:
-            actor = await plugin_harness.load_plugin(
-                MockOneAtATime, config.id, config.props
-            )
+            actor = await plugin_harness.load_plugin(MockOneAtATime, config.id, config.props)
             actors.append(actor)
 
         # Try to turn on first actor - should succeed
@@ -301,10 +279,7 @@ class TestOneAtATime:
             async def on(self, power=100):
                 group_state = MockOneAtATime.coordination_groups[self.group]
 
-                if (
-                    group_state["active_actor"] is not None
-                    and group_state["active_actor"] != self.id
-                ):
+                if group_state["active_actor"] is not None and group_state["active_actor"] != self.id:
                     if self.id not in group_state["waiting_actors"]:
                         group_state["waiting_actors"].append(self.id)
                     return False
@@ -401,10 +376,7 @@ class TestOneAtATime:
             async def on(self, power=100):
                 group_state = MockOneAtATime.coordination_groups[self.group]
 
-                if (
-                    group_state["active_actor"] is not None
-                    and group_state["active_actor"] != self.id
-                ):
+                if group_state["active_actor"] is not None and group_state["active_actor"] != self.id:
                     return False
 
                 group_state["active_actor"] = self.id
@@ -427,9 +399,7 @@ class TestOneAtATime:
             MockOneAtATime, "heater1", {"GPIO": 18, "CoordinationGroup": "heaters"}
         )
 
-        pump1 = await plugin_harness.load_plugin(
-            MockOneAtATime, "pump1", {"GPIO": 19, "CoordinationGroup": "pumps"}
-        )
+        pump1 = await plugin_harness.load_plugin(MockOneAtATime, "pump1", {"GPIO": 19, "CoordinationGroup": "pumps"})
 
         # Both should be able to turn on simultaneously (different groups)
         result1 = await heater1.on()
@@ -441,9 +411,7 @@ class TestOneAtATime:
         assert pump1.state == True
 
         # Both should be active in their respective groups
-        assert (
-            MockOneAtATime.coordination_groups["heaters"]["active_actor"] == "heater1"
-        )
+        assert MockOneAtATime.coordination_groups["heaters"]["active_actor"] == "heater1"
         assert MockOneAtATime.coordination_groups["pumps"]["active_actor"] == "pump1"
 
     def test_plugin_configuration_validation(self, coordination_config):
@@ -476,9 +444,7 @@ class TestOneAtATimeEdgeCases:
     @pytest.mark.asyncio
     async def test_empty_coordination_group(self, plugin_harness, mock_gpio):
         """Test behavior with empty coordination group name."""
-        config = GPIOActorConfigFactory(
-            id="test_empty_group", props={"GPIO": 18, "CoordinationGroup": ""}
-        )
+        config = GPIOActorConfigFactory(id="test_empty_group", props={"GPIO": 18, "CoordinationGroup": ""})
 
         class MockOneAtATime:
             _plugin_type = "Actor"
@@ -504,9 +470,7 @@ class TestOneAtATimeEdgeCases:
             async def on_stop(self):
                 self.running = False
 
-        plugin = await plugin_harness.load_plugin(
-            MockOneAtATime, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockOneAtATime, config.id, config.props)
 
         # Should use default group
         assert plugin.group == "default"

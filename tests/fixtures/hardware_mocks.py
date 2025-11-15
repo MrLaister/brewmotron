@@ -123,10 +123,7 @@ class MockRPiGPIO:
                 pull_up_down=pull_up_down,
             )
 
-            logger.debug(
-                f"Pin {p} setup: mode={mode}, pull_up_down={pull_up_down}, "
-                f"initial={initial}"
-            )
+            logger.debug(f"Pin {p} setup: mode={mode}, pull_up_down={pull_up_down}, " f"initial={initial}")
 
     def output(self, pin: Union[int, List[int]], value: Union[int, List[int]]) -> None:
         """Set output value for pin(s)."""
@@ -212,9 +209,7 @@ class MockRPiGPIO:
         # Simple implementation - in real hardware this would be more complex
         return False
 
-    def wait_for_edge(
-        self, pin: int, edge: int, bouncetime: int = 200, timeout: int = -1
-    ) -> Optional[int]:
+    def wait_for_edge(self, pin: int, edge: int, bouncetime: int = 200, timeout: int = -1) -> Optional[int]:
         """Wait for edge on pin."""
         # Simplified implementation for testing
         if timeout > 0:
@@ -364,10 +359,7 @@ class MockSMBus:
             device.last_access = datetime.now()
 
             value = device.registers.get(reg, 0)
-            logger.debug(
-                f"I2C read_byte_data: addr=0x{addr:02X}, "
-                f"reg=0x{reg:02X} -> 0x{value:02X}"
-            )
+            logger.debug(f"I2C read_byte_data: addr=0x{addr:02X}, " f"reg=0x{reg:02X} -> 0x{value:02X}")
             return value
 
     def write_byte_data(self, addr: int, reg: int, value: int) -> None:
@@ -381,10 +373,7 @@ class MockSMBus:
             device.last_access = datetime.now()
 
             device.registers[reg] = value
-            logger.debug(
-                f"I2C write_byte_data: addr=0x{addr:02X}, "
-                f"reg=0x{reg:02X}, value=0x{value:02X}"
-            )
+            logger.debug(f"I2C write_byte_data: addr=0x{addr:02X}, " f"reg=0x{reg:02X}, value=0x{value:02X}")
 
     def read_word_data(self, addr: int, reg: int) -> int:
         """Read word (2 bytes) from specific register."""
@@ -401,10 +390,7 @@ class MockSMBus:
             high_byte = device.registers.get(reg + 1, 0)
             value = (high_byte << 8) | low_byte
 
-            logger.debug(
-                f"I2C read_word_data: addr=0x{addr:02X}, "
-                f"reg=0x{reg:02X} -> 0x{value:04X}"
-            )
+            logger.debug(f"I2C read_word_data: addr=0x{addr:02X}, " f"reg=0x{reg:02X} -> 0x{value:04X}")
             return value
 
     def write_word_data(self, addr: int, reg: int, value: int) -> None:
@@ -424,10 +410,7 @@ class MockSMBus:
             device.registers[reg] = low_byte
             device.registers[reg + 1] = high_byte
 
-            logger.debug(
-                f"I2C write_word_data: addr=0x{addr:02X}, "
-                f"reg=0x{reg:02X}, value=0x{value:04X}"
-            )
+            logger.debug(f"I2C write_word_data: addr=0x{addr:02X}, " f"reg=0x{reg:02X}, value=0x{value:04X}")
 
     def read_i2c_block_data(self, addr: int, reg: int, length: int) -> List[int]:
         """Read block of data from I2C device."""
@@ -444,10 +427,7 @@ class MockSMBus:
             for i in range(length):
                 data.append(device.registers.get(reg + i, 0))
 
-            logger.debug(
-                f"I2C read_i2c_block_data: addr=0x{addr:02X}, "
-                f"reg=0x{reg:02X}, length={length}"
-            )
+            logger.debug(f"I2C read_i2c_block_data: addr=0x{addr:02X}, " f"reg=0x{reg:02X}, length={length}")
             return data
 
     def write_i2c_block_data(self, addr: int, reg: int, data: List[int]) -> None:
@@ -464,10 +444,7 @@ class MockSMBus:
             for i, value in enumerate(data):
                 device.registers[reg + i] = value
 
-            logger.debug(
-                f"I2C write_i2c_block_data: addr=0x{addr:02X}, "
-                f"reg=0x{reg:02X}, data={data}"
-            )
+            logger.debug(f"I2C write_i2c_block_data: addr=0x{addr:02X}, " f"reg=0x{reg:02X}, data={data}")
 
     def _get_device(self, addr: int) -> I2CDeviceState:
         """Get or create I2C device."""
@@ -571,10 +548,7 @@ class MockTemperatureSensor:
         self._last_update = datetime.now()
         self._readings_history: List[SensorReading] = []
 
-        logger.debug(
-            f"MockTemperatureSensor initialized: {sensor_type}, "
-            f"base={base_temperature}°C"
-        )
+        logger.debug(f"MockTemperatureSensor initialized: {sensor_type}, " f"base={base_temperature}°C")
 
     def set_target_temperature(self, temperature: float) -> None:
         """Set target temperature for simulation."""
@@ -620,10 +594,7 @@ class MockTemperatureSensor:
         if len(self._readings_history) > 1000:
             self._readings_history = self._readings_history[-1000:]
 
-        logger.debug(
-            f"Temperature reading: {measured_temp:.2f}°C "
-            f"(target: {self._target_temperature:.2f}°C)"
-        )
+        logger.debug(f"Temperature reading: {measured_temp:.2f}°C " f"(target: {self._target_temperature:.2f}°C)")
         return measured_temp
 
     def get_reading_history(self, count: int = 100) -> List[SensorReading]:
@@ -733,9 +704,7 @@ class MockLCDisplay:
         self.blink_cursor = False
         self._backlight_state = True
 
-        logger.debug(
-            f"MockLCDisplay initialized: {cols}x{rows} at address 0x{address:02X}"
-        )
+        logger.debug(f"MockLCDisplay initialized: {cols}x{rows} at address 0x{address:02X}")
 
     def write_string(self, text: str, col: int = None, row: int = None) -> None:
         """Write string to display at specified position."""
@@ -764,9 +733,7 @@ class MockLCDisplay:
 
     def clear(self) -> None:
         """Clear display."""
-        self.display_buffer = [
-            [" " for _ in range(self.cols)] for _ in range(self.rows)
-        ]
+        self.display_buffer = [[" " for _ in range(self.cols)] for _ in range(self.rows)]
         self.cursor_pos = (0, 0)
         logger.debug("LCD display cleared")
 
@@ -826,9 +793,7 @@ class HardwareTestHarness:
             self.i2c_buses[bus_id] = MockSMBus(bus_id)
         return self.i2c_buses[bus_id]
 
-    def add_temperature_sensor(
-        self, sensor_id: str, base_temp: float = 20.0
-    ) -> MockTemperatureSensor:
+    def add_temperature_sensor(self, sensor_id: str, base_temp: float = 20.0) -> MockTemperatureSensor:
         """Add temperature sensor."""
         sensor = MockTemperatureSensor(base_temp)
         self.temperature_sensors[sensor_id] = sensor
@@ -840,9 +805,7 @@ class HardwareTestHarness:
         self.displays_7seg[address] = display
         return display
 
-    def add_lcd_display(
-        self, address: int = 0x27, cols: int = 20, rows: int = 4
-    ) -> MockLCDisplay:
+    def add_lcd_display(self, address: int = 0x27, cols: int = 20, rows: int = 4) -> MockLCDisplay:
         """Add LCD display."""
         display = MockLCDisplay(address, cols, rows)
         self.displays_lcd[address] = display
@@ -869,9 +832,7 @@ class HardwareTestHarness:
     def get_system_state(self) -> Dict[str, Any]:
         """Get complete hardware system state."""
         return {
-            "gpio_pins": {
-                pin: state.__dict__ for pin, state in self.gpio._pins.items()
-            },
+            "gpio_pins": {pin: state.__dict__ for pin, state in self.gpio._pins.items()},
             "i2c_devices": {
                 bus_id: {addr: device.__dict__ for addr, device in bus._devices.items()}
                 for bus_id, bus in self.i2c_buses.items()
@@ -884,14 +845,8 @@ class HardwareTestHarness:
                 }
                 for sensor_id, sensor in self.temperature_sensors.items()
             },
-            "7seg_displays": {
-                addr: display.get_display_state()
-                for addr, display in self.displays_7seg.items()
-            },
-            "lcd_displays": {
-                addr: display.get_display_state()
-                for addr, display in self.displays_lcd.items()
-            },
+            "7seg_displays": {addr: display.get_display_state() for addr, display in self.displays_7seg.items()},
+            "lcd_displays": {addr: display.get_display_state() for addr, display in self.displays_lcd.items()},
         }
 
     def reset_all(self) -> None:

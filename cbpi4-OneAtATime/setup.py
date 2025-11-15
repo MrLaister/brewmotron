@@ -4,8 +4,7 @@ setup(
     name="cbpi4-OneAtATime",
     version="1.0.0",
     description=(
-        "CraftBeerPi Plugin to safely control high power outputs. "
-        "Can run standalone or with cbpi4-BMT-Key"
+        "CraftBeerPi Plugin to safely control high power outputs. " "Can run standalone or with cbpi4-BMT-Key"
     ),
     author="Andrew Laister",
     author_email="brewmotron@andrewlaister.com",

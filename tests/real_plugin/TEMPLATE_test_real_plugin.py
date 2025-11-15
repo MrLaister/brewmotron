@@ -41,9 +41,7 @@ class TestRealYourPlugin:
     """
 
     @pytest.mark.asyncio
-    async def test_plugin_initialization(
-        self, plugin_harness, real_plugin_class
-    ):
+    async def test_plugin_initialization(self, plugin_harness, real_plugin_class):
         """
         Test that the real plugin can be loaded and initialized.
 
@@ -62,15 +60,11 @@ class TestRealYourPlugin:
         # props = {}
 
         # Load the REAL plugin (not a mock!)
-        plugin = await plugin_harness.load_plugin(
-            real_plugin_class,
-            "test_plugin",
-            props
-        )
+        plugin = await plugin_harness.load_plugin(real_plugin_class, "test_plugin", props)
 
         # Verify plugin loaded correctly
         assert plugin is not None
-        assert hasattr(plugin, 'cbpi')
+        assert hasattr(plugin, "cbpi")
 
         # For Actors/Sensors, verify id and props
         # assert hasattr(plugin, 'id')
@@ -78,9 +72,7 @@ class TestRealYourPlugin:
         # assert plugin.props == props
 
     @pytest.mark.asyncio
-    async def test_configuration_parsing(
-        self, plugin_harness, real_plugin_class
-    ):
+    async def test_configuration_parsing(self, plugin_harness, real_plugin_class):
         """
         Test that plugin correctly parses its configuration.
 
@@ -91,11 +83,7 @@ class TestRealYourPlugin:
             "ConfigKey": "ConfigValue",
         }
 
-        plugin = await plugin_harness.load_plugin(
-            real_plugin_class,
-            "test_config",
-            props
-        )
+        plugin = await plugin_harness.load_plugin(real_plugin_class, "test_config", props)
 
         # Give plugin time to initialize
         await asyncio.sleep(0.1)
@@ -110,9 +98,7 @@ class TestRealYourPlugin:
 
     # For Actor plugins:
     @pytest.mark.asyncio
-    async def test_actor_on_off(
-        self, plugin_harness, real_plugin_class, mock_rpi_gpio
-    ):
+    async def test_actor_on_off(self, plugin_harness, real_plugin_class, mock_rpi_gpio):
         """
         Test actor on/off functionality.
 
@@ -124,11 +110,7 @@ class TestRealYourPlugin:
             "Inverted": "No",
         }
 
-        actor = await plugin_harness.load_plugin(
-            real_plugin_class,
-            "test_actor",
-            props
-        )
+        actor = await plugin_harness.load_plugin(real_plugin_class, "test_actor", props)
 
         # Test turning ON
         await actor.on()
@@ -146,9 +128,7 @@ class TestRealYourPlugin:
 
     # For Sensor plugins:
     @pytest.mark.asyncio
-    async def test_sensor_reading(
-        self, plugin_harness, real_plugin_class
-    ):
+    async def test_sensor_reading(self, plugin_harness, real_plugin_class):
         """
         Test sensor value reading.
 
@@ -159,11 +139,7 @@ class TestRealYourPlugin:
             # TODO: Add sensor configuration
         }
 
-        sensor = await plugin_harness.load_plugin(
-            real_plugin_class,
-            "test_sensor",
-            props
-        )
+        sensor = await plugin_harness.load_plugin(real_plugin_class, "test_sensor", props)
 
         # Get sensor value
         value = await sensor.get_value()
@@ -174,9 +150,7 @@ class TestRealYourPlugin:
 
     # For Extension plugins:
     @pytest.mark.asyncio
-    async def test_extension_background_task(
-        self, plugin_harness, real_plugin_class
-    ):
+    async def test_extension_background_task(self, plugin_harness, real_plugin_class):
         """
         Test extension background tasks.
 
@@ -184,15 +158,15 @@ class TestRealYourPlugin:
         TODO: Delete if not an Extension plugin
         """
         # Extensions read from cbpi.config
-        plugin_harness.cbpi.config._config_data.update({
-            # TODO: Add your extension's configuration
-            "YourConfigKey": "value",
-        })
+        plugin_harness.cbpi.config._config_data.update(
+            {
+                # TODO: Add your extension's configuration
+                "YourConfigKey": "value",
+            }
+        )
 
         extension = await plugin_harness.load_plugin(
-            real_plugin_class,
-            "test_extension",
-            {}  # Extensions don't use props
+            real_plugin_class, "test_extension", {}  # Extensions don't use props
         )
 
         # Let background tasks run
@@ -201,9 +175,7 @@ class TestRealYourPlugin:
         # TODO: Add assertions about extension behavior
 
     @pytest.mark.asyncio
-    async def test_plugin_cleanup(
-        self, plugin_harness, real_plugin_class
-    ):
+    async def test_plugin_cleanup(self, plugin_harness, real_plugin_class):
         """
         Test that plugin properly cleans up on stop.
 
@@ -213,16 +185,12 @@ class TestRealYourPlugin:
             # TODO: Add configuration
         }
 
-        plugin = await plugin_harness.load_plugin(
-            real_plugin_class,
-            "test_cleanup",
-            props
-        )
+        plugin = await plugin_harness.load_plugin(real_plugin_class, "test_cleanup", props)
 
         await asyncio.sleep(0.1)
 
         # Stop the plugin
-        if hasattr(plugin, 'on_stop'):
+        if hasattr(plugin, "on_stop"):
             await plugin.on_stop()
 
         # TODO: Verify cleanup
@@ -240,9 +208,7 @@ class TestRealYourPluginEdgeCases:
     """
 
     @pytest.mark.asyncio
-    async def test_missing_required_config(
-        self, plugin_harness, real_plugin_class
-    ):
+    async def test_missing_required_config(self, plugin_harness, real_plugin_class):
         """
         Test behavior when required configuration is missing.
 
@@ -253,11 +219,7 @@ class TestRealYourPluginEdgeCases:
         }
 
         try:
-            plugin = await plugin_harness.load_plugin(
-                real_plugin_class,
-                "test_missing_config",
-                props
-            )
+            plugin = await plugin_harness.load_plugin(real_plugin_class, "test_missing_config", props)
             # If it loads, check how it handles missing config
             await asyncio.sleep(0.1)
         except (KeyError, ValueError, AttributeError) as e:
@@ -265,9 +227,7 @@ class TestRealYourPluginEdgeCases:
             pass
 
     @pytest.mark.asyncio
-    async def test_invalid_config_values(
-        self, plugin_harness, real_plugin_class
-    ):
+    async def test_invalid_config_values(self, plugin_harness, real_plugin_class):
         """
         Test handling of invalid configuration values.
 
@@ -279,11 +239,7 @@ class TestRealYourPluginEdgeCases:
         }
 
         try:
-            plugin = await plugin_harness.load_plugin(
-                real_plugin_class,
-                "test_invalid_config",
-                props
-            )
+            plugin = await plugin_harness.load_plugin(real_plugin_class, "test_invalid_config", props)
             # Document actual behavior
             await asyncio.sleep(0.1)
         except (ValueError, TypeError) as e:

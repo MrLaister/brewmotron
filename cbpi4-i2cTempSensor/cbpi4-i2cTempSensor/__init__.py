@@ -85,9 +85,7 @@ class tempProbe:
             configurable=True,
             description="Enter the slow sample interval time e.g. 30",
         ),
-        Property.Text(
-            label="VMax", configurable=True, description="Enter max voltage (e.g. 3.3)"
-        ),
+        Property.Text(label="VMax", configurable=True, description="Enter max voltage (e.g. 3.3)"),
         Property.Kettle(
             label="Kettle",
             description="Select the kettle associatated to use faster interval",
@@ -111,9 +109,7 @@ class i2cTempSensor(CBPiSensor):
         self.channel = self.props.get("Channel")
         self.resistorvalue = float(self.props.get("Resistor Value"))
         self.thermistorR = float(self.props.get("Thermistor Nominal Resistance"))
-        self.thermistorRT = float(
-            self.props.get("Thermistor Nominal Resistance Temperature")
-        )
+        self.thermistorRT = float(self.props.get("Thermistor Nominal Resistance Temperature"))
         self.beta = float(self.props.get("Thermistor Beta"))
         self.fastUpdate = float(self.props.get("Sample Interval Time - Fast"))
         self.slowUpdate = float(self.props.get("Sample Interval Time - Slow"))

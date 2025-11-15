@@ -62,9 +62,7 @@ class TestI2CTempSensor:
         )
 
     @pytest.mark.asyncio
-    async def test_sensor_initialization(
-        self, plugin_harness, sensor_config, mock_i2c, mock_temp_sensor
-    ):
+    async def test_sensor_initialization(self, plugin_harness, sensor_config, mock_i2c, mock_temp_sensor):
         """Test sensor initialization with valid configuration."""
 
         class MockI2CTempSensor:
@@ -99,9 +97,7 @@ class TestI2CTempSensor:
                     try:
                         # Simulate ADC reading
                         raw_value = mock_i2c.read_word_data(self.sensor_address, 0x00)
-                        self.value = (
-                            self._convert_to_temperature(raw_value) + self.offset
-                        )
+                        self.value = self._convert_to_temperature(raw_value) + self.offset
                     except Exception as e:
                         # Handle I2C errors gracefully
                         pass
@@ -123,9 +119,7 @@ class TestI2CTempSensor:
         # Set up mock I2C to return realistic ADC values
         mock_i2c.write_word_data(0x48, 0x00, 32768)  # Mid-range ADC value
 
-        plugin = await plugin_harness.load_plugin(
-            MockI2CTempSensor, sensor_config.id, sensor_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockI2CTempSensor, sensor_config.id, sensor_config.props)
 
         assert plugin.id == sensor_config.id
         assert plugin.sensor_address == 0x48
@@ -143,9 +137,7 @@ class TestI2CTempSensor:
         assert temp_value >= 0.0  # Reasonable temperature range
 
     @pytest.mark.asyncio
-    async def test_temperature_conversion_accuracy(
-        self, plugin_harness, sensor_config, mock_i2c
-    ):
+    async def test_temperature_conversion_accuracy(self, plugin_harness, sensor_config, mock_i2c):
         """Test temperature conversion accuracy for different probe types."""
 
         class MockI2CTempSensor:
@@ -189,9 +181,7 @@ class TestI2CTempSensor:
                 else:
                     return 0.0
 
-        plugin = await plugin_harness.load_plugin(
-            MockI2CTempSensor, sensor_config.id, sensor_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockI2CTempSensor, sensor_config.id, sensor_config.props)
 
         # Test known resistance-temperature pairs for PT100
         test_cases = [
@@ -203,9 +193,7 @@ class TestI2CTempSensor:
         for resistance, expected_temp in test_cases:
             calculated_temp = plugin.convert_resistance_to_temperature(resistance)
             # Allow for some tolerance in conversion
-            assert (
-                abs(calculated_temp - expected_temp) < 5.0
-            ), f"Temperature conversion error for {resistance}Ω"
+            assert abs(calculated_temp - expected_temp) < 5.0, f"Temperature conversion error for {resistance}Ω"
 
     @pytest.mark.asyncio
     async def test_sensor_offset_calibration(self, plugin_harness, mock_i2c):
@@ -242,9 +230,7 @@ class TestI2CTempSensor:
                 """Get temperature with offset applied."""
                 return self.raw_temperature + self.offset
 
-        plugin = await plugin_harness.load_plugin(
-            MockI2CTempSensor, config_with_offset.id, config_with_offset.props
-        )
+        plugin = await plugin_harness.load_plugin(MockI2CTempSensor, config_with_offset.id, config_with_offset.props)
 
         # Test offset application
         calibrated_temp = plugin.get_calibrated_value()
@@ -252,9 +238,7 @@ class TestI2CTempSensor:
         assert calibrated_temp == expected_temp
 
     @pytest.mark.asyncio
-    async def test_i2c_communication_error_handling(
-        self, plugin_harness, sensor_config, mock_i2c
-    ):
+    async def test_i2c_communication_error_handling(self, plugin_harness, sensor_config, mock_i2c):
         """Test handling of I2C communication errors."""
 
         class MockI2CTempSensor:
@@ -301,9 +285,7 @@ class TestI2CTempSensor:
         # Simulate I2C device failure
         mock_i2c.simulate_device_failure(0x48, "connection_lost")
 
-        plugin = await plugin_harness.load_plugin(
-            MockI2CTempSensor, sensor_config.id, sensor_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockI2CTempSensor, sensor_config.id, sensor_config.props)
 
         # Wait for some read attempts
         await asyncio.sleep(0.3)
@@ -327,9 +309,7 @@ class TestI2CTempSensor:
                 self.cbpi = cbpi
                 self.id = id
                 self.sensor_address = int(props.get("SensorAddress", "0x48"), 16)
-                self.value = (
-                    20.0 + (self.sensor_address - 0x48) * 5
-                )  # Different base temps
+                self.value = 20.0 + (self.sensor_address - 0x48) * 5  # Different base temps
                 self.running = False
 
             async def on_start(self):
@@ -349,9 +329,7 @@ class TestI2CTempSensor:
                 props={"SensorAddress": f"0x{addr:02X}"},
             )
 
-            sensor = await plugin_harness.load_plugin(
-                MockI2CTempSensor, config.id, config.props
-            )
+            sensor = await plugin_harness.load_plugin(MockI2CTempSensor, config.id, config.props)
             sensors.append(sensor)
 
         # Verify each sensor has correct address and unique value
@@ -419,9 +397,7 @@ class TestI2CTempSensorEdgeCases:
             async def on_stop(self):
                 self.running = False
 
-        plugin = await plugin_harness.load_plugin(
-            MockI2CTempSensor, invalid_config.id, invalid_config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockI2CTempSensor, invalid_config.id, invalid_config.props)
 
         # Should fallback to valid default address
         assert plugin.sensor_address == 0x48
@@ -429,9 +405,7 @@ class TestI2CTempSensorEdgeCases:
     @pytest.mark.asyncio
     async def test_extreme_temperature_readings(self, plugin_harness, mock_i2c):
         """Test handling of extreme temperature readings."""
-        config = PluginConfigFactory(
-            id="test_extreme_temps", type="Sensor", props={"SensorAddress": "0x48"}
-        )
+        config = PluginConfigFactory(id="test_extreme_temps", type="Sensor", props={"SensorAddress": "0x48"})
 
         class MockI2CTempSensor:
             _plugin_type = "Sensor"
@@ -454,9 +428,7 @@ class TestI2CTempSensorEdgeCases:
                     return None  # Invalid reading
                 return temp
 
-        plugin = await plugin_harness.load_plugin(
-            MockI2CTempSensor, config.id, config.props
-        )
+        plugin = await plugin_harness.load_plugin(MockI2CTempSensor, config.id, config.props)
 
         # Test extreme values
         extreme_temps = [-100.0, 500.0, float("inf"), float("-inf")]

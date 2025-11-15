@@ -19,15 +19,9 @@ logger = logging.getLogger(__name__)
 
 @parameters(
     [
-        Property.Actor(
-            label="input_actor_a", description="Select an actor as an input."
-        ),
-        Property.Actor(
-            label="input_actor_b", description="Select an actor as an input."
-        ),
-        Property.Actor(
-            label="input_actor_c", description="Select an actor as an input."
-        ),
+        Property.Actor(label="input_actor_a", description="Select an actor as an input."),
+        Property.Actor(label="input_actor_b", description="Select an actor as an input."),
+        Property.Actor(label="input_actor_c", description="Select an actor as an input."),
     ]
 )
 

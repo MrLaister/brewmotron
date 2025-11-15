@@ -3,10 +3,7 @@ from setuptools import setup
 setup(
     name="cbpi4-AlwaysONGPIO",
     version="0.0.1",
-    description=(
-        "CraftBeerPi4 Plugin to always keep a selected GPIO ON - "
-        "e.g. Running LED"
-    ),
+    description=("CraftBeerPi4 Plugin to always keep a selected GPIO ON - " "e.g. Running LED"),
     author="Andrew Laister",
     author_email="brewmotron@andrewlaister.com",
     maintainer="Brewmotron Project",

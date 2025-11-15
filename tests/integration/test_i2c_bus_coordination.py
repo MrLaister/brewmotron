@@ -323,12 +323,8 @@ class TestI2CBusCoordination:
         }
 
         # Register sensors in CBPI system
-        harness.cbpi.sensor.register_sensor(
-            "mash_temp", {"id": "mash_temp", "type": "MockTemp"}
-        )
-        harness.cbpi.sensor.register_sensor(
-            "boil_temp", {"id": "boil_temp", "type": "MockTemp"}
-        )
+        harness.cbpi.sensor.register_sensor("mash_temp", {"id": "mash_temp", "type": "MockTemp"})
+        harness.cbpi.sensor.register_sensor("boil_temp", {"id": "boil_temp", "type": "MockTemp"})
 
         yield {"harness": harness, "devices": devices}
 
@@ -351,12 +347,8 @@ class TestI2CBusCoordination:
 
         # Verify all devices are making I2C transactions
         for device_name, device in devices.items():
-            assert (
-                device.transaction_count > 0
-            ), f"{device_name} should have made I2C transactions"
-            assert (
-                device.last_access is not None
-            ), f"{device_name} should have access timestamp"
+            assert device.transaction_count > 0, f"{device_name} should have made I2C transactions"
+            assert device.last_access is not None, f"{device_name} should have access timestamp"
 
         # Stop all devices
         stop_tasks = [device.stop() for device in devices.values()]
@@ -381,12 +373,8 @@ class TestI2CBusCoordination:
         await asyncio.sleep(2)
 
         # Check that each display maintains its own state
-        mash_history = [
-            h for h in mash_display.access_history if h["operation"] == "display_update"
-        ]
-        boil_history = [
-            h for h in boil_display.access_history if h["operation"] == "display_update"
-        ]
+        mash_history = [h for h in mash_display.access_history if h["operation"] == "display_update"]
+        boil_history = [h for h in boil_display.access_history if h["operation"] == "display_update"]
 
         assert len(mash_history) > 0, "Mash display should have update history"
         assert len(boil_history) > 0, "Boil display should have update history"
@@ -396,12 +384,8 @@ class TestI2CBusCoordination:
         latest_boil = boil_history[-1]["data"]
 
         assert latest_mash != latest_boil, "Displays should maintain different values"
-        assert (
-            abs(latest_mash - 65.5) < 0.1
-        ), f"Mash display should show ~65.5, got {latest_mash}"
-        assert (
-            abs(latest_boil - 98.2) < 0.1
-        ), f"Boil display should show ~98.2, got {latest_boil}"
+        assert abs(latest_mash - 65.5) < 0.1, f"Mash display should show ~65.5, got {latest_mash}"
+        assert abs(latest_boil - 98.2) < 0.1, f"Boil display should show ~98.2, got {latest_boil}"
 
         await mash_display.stop()
         await boil_display.stop()
@@ -414,12 +398,8 @@ class TestI2CBusCoordination:
         temp_sensor2 = devices["temp_sensor2"]  # channel 1
 
         # Both sensors use same I2C address (0x48) but different channels
-        assert (
-            temp_sensor.address == temp_sensor2.address
-        ), "Sensors should share same I2C address"
-        assert (
-            temp_sensor.channel != temp_sensor2.channel
-        ), "Sensors should use different channels"
+        assert temp_sensor.address == temp_sensor2.address, "Sensors should share same I2C address"
+        assert temp_sensor.channel != temp_sensor2.channel, "Sensors should use different channels"
 
         # Start both sensors
         await temp_sensor.start()
@@ -436,15 +416,9 @@ class TestI2CBusCoordination:
         mash_temp = await i2c_harness["harness"].cbpi.sensor.get_value("mash_temp")
         boil_temp = await i2c_harness["harness"].cbpi.sensor.get_value("boil_temp")
 
-        assert (
-            abs(mash_temp - 66.0) < 5.0
-        ), f"Mash temp should be ~66°C, got {mash_temp}"
-        assert (
-            abs(boil_temp - 99.0) < 5.0
-        ), f"Boil temp should be ~99°C, got {boil_temp}"
-        assert (
-            abs(mash_temp - boil_temp) > 10
-        ), "Temperatures should be significantly different"
+        assert abs(mash_temp - 66.0) < 5.0, f"Mash temp should be ~66°C, got {mash_temp}"
+        assert abs(boil_temp - 99.0) < 5.0, f"Boil temp should be ~99°C, got {boil_temp}"
+        assert abs(mash_temp - boil_temp) > 10, "Temperatures should be significantly different"
 
         await temp_sensor.stop()
         await temp_sensor2.stop()
@@ -470,14 +444,8 @@ class TestI2CBusCoordination:
         end_time = datetime.now()
 
         # Analyze transaction timing
-        display_updates = [
-            h for h in mash_display.access_history if h["operation"] == "display_update"
-        ]
-        sensor_reads = [
-            h
-            for h in temp_sensor.access_history
-            if h["operation"] == "temperature_read"
-        ]
+        display_updates = [h for h in mash_display.access_history if h["operation"] == "display_update"]
+        sensor_reads = [h for h in temp_sensor.access_history if h["operation"] == "temperature_read"]
 
         # Calculate update rates
         duration = (end_time - start_time).total_seconds()
@@ -488,17 +456,11 @@ class TestI2CBusCoordination:
         expected_display_rate = 1.0 / mash_display.update_interval
         expected_sensor_rate = 1.0 / temp_sensor.read_interval
 
-        assert (
-            abs(display_rate - expected_display_rate) < 0.5
-        ), (
-            f"Display rate should be ~{expected_display_rate:.1f}/s, "
-            f"got {display_rate:.1f}/s"
+        assert abs(display_rate - expected_display_rate) < 0.5, (
+            f"Display rate should be ~{expected_display_rate:.1f}/s, " f"got {display_rate:.1f}/s"
         )
-        assert (
-            abs(sensor_rate - expected_sensor_rate) < 0.3
-        ), (
-            f"Sensor rate should be ~{expected_sensor_rate:.1f}/s, "
-            f"got {sensor_rate:.1f}/s"
+        assert abs(sensor_rate - expected_sensor_rate) < 0.3, (
+            f"Sensor rate should be ~{expected_sensor_rate:.1f}/s, " f"got {sensor_rate:.1f}/s"
         )
 
         await mash_display.stop()
@@ -524,9 +486,7 @@ class TestI2CBusCoordination:
         await asyncio.sleep(2)
 
         # Should have error entries in history
-        error_entries = [
-            h for h in mash_display.access_history if "error" in h["operation"]
-        ]
+        error_entries = [h for h in mash_display.access_history if "error" in h["operation"]]
         assert len(error_entries) > 0, "Should have recorded I2C errors"
 
         # Restore device connection
@@ -537,9 +497,7 @@ class TestI2CBusCoordination:
 
         # Should resume normal operation
         final_count = mash_display.transaction_count
-        assert (
-            final_count > initial_count
-        ), "Should continue making transactions after recovery"
+        assert final_count > initial_count, "Should continue making transactions after recovery"
 
         await mash_display.stop()
 
@@ -564,27 +522,16 @@ class TestI2CBusCoordination:
 
         # Check that all devices are still operating
         for device_name, device in devices.items():
-            assert (
-                device.transaction_count > 10
-            ), (
-                f"{device_name} should have high transaction count "
-                f"under contention"
+            assert device.transaction_count > 10, (
+                f"{device_name} should have high transaction count " f"under contention"
             )
 
             # Check for reasonable error rate (some errors expected
             # under high contention)
-            error_count = len(
-                [h for h in device.access_history if "error" in h["operation"]]
-            )
-            error_rate = (
-                error_count / device.transaction_count
-                if device.transaction_count > 0
-                else 0
-            )
+            error_count = len([h for h in device.access_history if "error" in h["operation"]])
+            error_rate = error_count / device.transaction_count if device.transaction_count > 0 else 0
 
-            assert (
-                error_rate < 0.5
-            ), f"{device_name} error rate too high: {error_rate:.2f}"
+            assert error_rate < 0.5, f"{device_name} error rate too high: {error_rate:.2f}"
 
         # Stop all devices
         stop_tasks = [device.stop() for device in devices.values()]
@@ -611,9 +558,7 @@ class TestI2CBusCoordination:
 
         # Verify sensor reading
         sensor_value = await i2c_harness["harness"].cbpi.sensor.get_value("mash_temp")
-        assert (
-            abs(sensor_value - 67.8) < 2.0
-        ), f"Sensor should read ~67.8°C, got {sensor_value}"
+        assert abs(sensor_value - 67.8) < 2.0, f"Sensor should read ~67.8°C, got {sensor_value}"
 
         # Set display to show sensor value
         mash_display.set_value(sensor_value)
@@ -622,23 +567,16 @@ class TestI2CBusCoordination:
         await asyncio.sleep(1)
 
         # Check that display updated with sensor value
-        display_updates = [
-            h for h in mash_display.access_history if h["operation"] == "display_update"
-        ]
+        display_updates = [h for h in mash_display.access_history if h["operation"] == "display_update"]
 
         assert len(display_updates) > 0, "Display should have update history"
         latest_display_value = display_updates[-1]["data"]
-        assert (
-            abs(latest_display_value - sensor_value) < 1.0
-        ), (
-            f"Display should show sensor value {sensor_value:.1f}, "
-            f"got {latest_display_value:.1f}"
+        assert abs(latest_display_value - sensor_value) < 1.0, (
+            f"Display should show sensor value {sensor_value:.1f}, " f"got {latest_display_value:.1f}"
         )
 
         # Check LCD display updates
-        lcd_updates = [
-            h for h in lcd_display.access_history if h["operation"] == "lcd_update"
-        ]
+        lcd_updates = [h for h in lcd_display.access_history if h["operation"] == "lcd_update"]
         assert len(lcd_updates) > 0, "LCD should have update history"
 
         await temp_sensor.stop()
@@ -670,16 +608,10 @@ class TestI2CBusCoordination:
         all_transactions.sort(key=lambda x: x["timestamp"])
 
         # Verify transactions are properly interleaved (not blocked)
-        sensor1_count = len(
-            [t for t in all_transactions if t in temp_sensor.access_history]
-        )
-        sensor2_count = len(
-            [t for t in all_transactions if t in temp_sensor2.access_history]
-        )
+        sensor1_count = len([t for t in all_transactions if t in temp_sensor.access_history])
+        sensor2_count = len([t for t in all_transactions if t in temp_sensor2.access_history])
 
-        assert (
-            sensor1_count > 0 and sensor2_count > 0
-        ), "Both sensors should have transactions"
+        assert sensor1_count > 0 and sensor2_count > 0, "Both sensors should have transactions"
 
         # Check for reasonable interleaving (no long sequences of same sensor)
         max_consecutive = 0
@@ -698,9 +630,7 @@ class TestI2CBusCoordination:
             last_sensor = current_sensor
 
         # Should not have long sequences of same sensor (indicates blocking)
-        assert (
-            max_consecutive <= 5
-        ), f"Too many consecutive transactions from same sensor: {max_consecutive}"
+        assert max_consecutive <= 5, f"Too many consecutive transactions from same sensor: {max_consecutive}"
 
         await temp_sensor.stop()
         await temp_sensor2.stop()

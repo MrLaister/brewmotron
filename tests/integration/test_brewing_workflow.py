@@ -135,9 +135,7 @@ class MockBrewingController:
         await self._configure_phase(new_phase)
 
         # Send notification
-        await self.cbpi.notification.notify(
-            "Phase Change", f"Brewing phase changed to {new_phase.value}", "info"
-        )
+        await self.cbpi.notification.notify("Phase Change", f"Brewing phase changed to {new_phase.value}", "info")
 
     async def _configure_phase(self, phase: BrewingPhase):
         """Configure system for specific brewing phase."""
@@ -192,9 +190,7 @@ class MockBrewingController:
 
                 # For heating phases, also check minimum time
                 if self.phase_start_time:
-                    min_time_elapsed = (
-                        datetime.now() - self.phase_start_time
-                    ).total_seconds() > 3
+                    min_time_elapsed = (datetime.now() - self.phase_start_time).total_seconds() > 3
                     return temp_reached and min_time_elapsed
 
                 return temp_reached
@@ -245,9 +241,7 @@ class MockModeController:
         await self._configure_mode(new_mode)
 
         # Send notification
-        await self.cbpi.notification.notify(
-            "Mode Change", f"System mode changed to {new_mode}", "info"
-        )
+        await self.cbpi.notification.notify("Mode Change", f"System mode changed to {new_mode}", "info")
 
     async def _configure_mode(self, mode: str):
         """Configure system for specific mode."""
@@ -346,13 +340,8 @@ class MockDisplayManager:
     def get_display_state(self):
         """Get current display state for testing."""
         return {
-            "seg_displays": {
-                addr: display.get_display_state()
-                for addr, display in self.seg_displays.items()
-            },
-            "lcd_display": (
-                self.lcd_display.get_display_state() if self.lcd_display else None
-            ),
+            "seg_displays": {addr: display.get_display_state() for addr, display in self.seg_displays.items()},
+            "lcd_display": (self.lcd_display.get_display_state() if self.lcd_display else None),
         }
 
 
@@ -366,26 +355,14 @@ class TestBrewingWorkflow:
         hardware = create_brewmotron_hardware_setup()
 
         # Register sensors and actors
-        harness.cbpi.sensor.register_sensor(
-            "mash_temp", {"id": "mash_temp", "type": "MockTemp"}
-        )
-        harness.cbpi.sensor.register_sensor(
-            "boil_temp", {"id": "boil_temp", "type": "MockTemp"}
-        )
+        harness.cbpi.sensor.register_sensor("mash_temp", {"id": "mash_temp", "type": "MockTemp"})
+        harness.cbpi.sensor.register_sensor("boil_temp", {"id": "boil_temp", "type": "MockTemp"})
 
-        harness.cbpi.actor.register_actor(
-            "mash_heater", {"id": "mash_heater", "type": "MockGPIO"}
-        )
-        harness.cbpi.actor.register_actor(
-            "boil_heater", {"id": "boil_heater", "type": "MockGPIO"}
-        )
-        harness.cbpi.actor.register_actor(
-            "sparge_heater", {"id": "sparge_heater", "type": "MockGPIO"}
-        )
+        harness.cbpi.actor.register_actor("mash_heater", {"id": "mash_heater", "type": "MockGPIO"})
+        harness.cbpi.actor.register_actor("boil_heater", {"id": "boil_heater", "type": "MockGPIO"})
+        harness.cbpi.actor.register_actor("sparge_heater", {"id": "sparge_heater", "type": "MockGPIO"})
         harness.cbpi.actor.register_actor("pump", {"id": "pump", "type": "MockGPIO"})
-        harness.cbpi.actor.register_actor(
-            "cooling_pump", {"id": "cooling_pump", "type": "MockGPIO"}
-        )
+        harness.cbpi.actor.register_actor("cooling_pump", {"id": "cooling_pump", "type": "MockGPIO"})
 
         # Initialize system components
         brewing_controller = MockBrewingController(harness.cbpi)
@@ -422,26 +399,19 @@ class TestBrewingWorkflow:
         await brewing_controller.start_brewing()
 
         # Simulate temperature responses during brewing
-        asyncio.create_task(
-            self._simulate_temperature_responses(harness, brewing_controller)
-        )
+        asyncio.create_task(self._simulate_temperature_responses(harness, brewing_controller))
 
         # Run brewing process
         await asyncio.sleep(25)  # Allow several phases to complete
 
         # Verify phase progression
-        assert (
-            len(brewing_controller.phase_history) >= 3
-        ), (
-            f"Should have progressed through multiple phases, "
-            f"got {len(brewing_controller.phase_history)}"
+        assert len(brewing_controller.phase_history) >= 3, (
+            f"Should have progressed through multiple phases, " f"got {len(brewing_controller.phase_history)}"
         )
 
         # Check that we progressed beyond initial phase
         phases = [entry["phase"] for entry in brewing_controller.phase_history]
-        assert (
-            BrewingPhase.MASH_HEAT in phases
-        ), "Should have entered mash heating phase"
+        assert BrewingPhase.MASH_HEAT in phases, "Should have entered mash heating phase"
         assert (
             BrewingPhase.MASH_HOLD in phases or BrewingPhase.SPARGE in phases
         ), "Should have progressed to mash hold or sparge phase"
@@ -463,9 +433,7 @@ class TestBrewingWorkflow:
                 pass
 
         # In OneAtATime system, should have at most one actor active
-        assert (
-            len(active_actors) <= 1
-        ), f"Too many actors active simultaneously: {active_actors}"
+        assert len(active_actors) <= 1, f"Too many actors active simultaneously: {active_actors}"
 
         await brewing_controller.stop_brewing()
 
@@ -587,12 +555,8 @@ class TestBrewingWorkflow:
         assert lcd_state is not None, "Should have LCD display"
 
         lcd_content = lcd_state["content"]
-        assert any(
-            "Brewmotron" in line for line in lcd_content
-        ), "LCD should show system name"
-        assert any(
-            ":" in line and "C" in line for line in lcd_content
-        ), "LCD should show temperature data"
+        assert any("Brewmotron" in line for line in lcd_content), "LCD should show system name"
+        assert any(":" in line and "C" in line for line in lcd_content), "LCD should show temperature data"
 
         # Change temperatures and verify display updates
         await harness.cbpi.sensor.set_value("mash_temp", 55.5)
@@ -638,9 +602,7 @@ class TestBrewingWorkflow:
         assert brewing_controller._running, "Brewing controller should still be running"
 
         # Should have progressed phases (using fallback logic)
-        assert (
-            len(brewing_controller.phase_history) > 1
-        ), "Should continue phase progression"
+        assert len(brewing_controller.phase_history) > 1, "Should continue phase progression"
 
         # Restore sensor and continue
         harness.cbpi.sensor.get_value = original_get_value
@@ -675,16 +637,12 @@ class TestBrewingWorkflow:
         assert display_manager._running, "Display manager should be stable"
 
         # Check that all subsystems are functioning
-        assert (
-            len(brewing_controller.phase_history) > 0
-        ), "Brewing should be progressing"
+        assert len(brewing_controller.phase_history) > 0, "Brewing should be progressing"
         assert len(mode_controller.mode_history) > 1, "Mode changes should be occurring"
 
         # Verify display updates are working
         display_state = display_manager.get_display_state()
-        assert (
-            display_state["lcd_display"] is not None
-        ), "LCD display should be functioning"
+        assert display_state["lcd_display"] is not None, "LCD display should be functioning"
 
         # Stop all operations
         await brewing_controller.stop_brewing()
@@ -716,12 +674,8 @@ class TestBrewingWorkflow:
                 mash_variation = random.uniform(-1.0, 1.0)
                 boil_variation = random.uniform(-1.0, 1.0)
 
-                await harness.cbpi.sensor.set_value(
-                    "mash_temp", base_mash + mash_variation
-                )
-                await harness.cbpi.sensor.set_value(
-                    "boil_temp", base_boil + boil_variation
-                )
+                await harness.cbpi.sensor.set_value("mash_temp", base_mash + mash_variation)
+                await harness.cbpi.sensor.set_value("boil_temp", base_boil + boil_variation)
 
                 base_mash += random.uniform(-0.5, 2.0)  # Gradual heating
                 base_boil += random.uniform(-0.5, 1.8)
@@ -737,9 +691,7 @@ class TestBrewingWorkflow:
         harness = brewing_system["harness"]
 
         # Configure fast temperature responses for timing test
-        asyncio.create_task(
-            self._fast_temperature_simulation(harness, brewing_controller)
-        )
+        asyncio.create_task(self._fast_temperature_simulation(harness, brewing_controller))
 
         # Start brewing and track timing
         start_time = datetime.now()
@@ -757,25 +709,17 @@ class TestBrewingWorkflow:
             current_phase = phase_history[i]
             previous_phase = phase_history[i - 1]
 
-            duration = (
-                current_phase["start_time"] - previous_phase["start_time"]
-            ).total_seconds()
+            duration = (current_phase["start_time"] - previous_phase["start_time"]).total_seconds()
 
             # Each phase should have minimum duration (accounting for test timing)
-            assert (
-                duration >= 1.0
-            ), f"Phase {previous_phase['phase'].value} too short: {duration}s"
-            assert (
-                duration <= 15.0
-            ), f"Phase {previous_phase['phase'].value} too long: {duration}s"
+            assert duration >= 1.0, f"Phase {previous_phase['phase'].value} too short: {duration}s"
+            assert duration <= 15.0, f"Phase {previous_phase['phase'].value} too long: {duration}s"
 
         # Verify logical phase sequence
         phase_names = [entry["phase"].value for entry in phase_history]
 
         # Should start with mash heating
-        assert (
-            phase_names[0] == "mash_heat"
-        ), f"Should start with mash_heat, got {phase_names[0]}"
+        assert phase_names[0] == "mash_heat", f"Should start with mash_heat, got {phase_names[0]}"
 
         # Should not have repeated phases (except potentially hold phases)
         non_hold_phases = [p for p in phase_names if "hold" not in p]
@@ -799,16 +743,12 @@ class TestBrewingWorkflow:
                         BrewingPhase.MASH_HEAT,
                         BrewingPhase.MASH_HOLD,
                     ]:
-                        await harness.cbpi.sensor.set_value(
-                            "mash_temp", target_temp - 0.5
-                        )
+                        await harness.cbpi.sensor.set_value("mash_temp", target_temp - 0.5)
                     elif current_phase in [
                         BrewingPhase.BOIL_HEAT,
                         BrewingPhase.BOIL_HOLD,
                     ]:
-                        await harness.cbpi.sensor.set_value(
-                            "boil_temp", target_temp - 0.5
-                        )
+                        await harness.cbpi.sensor.set_value("boil_temp", target_temp - 0.5)
                     elif current_phase == BrewingPhase.SPARGE:
                         await harness.cbpi.sensor.set_value("mash_temp", 77.5)
 

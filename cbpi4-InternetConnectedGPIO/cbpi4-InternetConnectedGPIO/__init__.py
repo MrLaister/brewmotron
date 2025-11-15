@@ -57,9 +57,7 @@ if mode is None:
                 27,
             ],
         ),
-        Property.Select(
-            label="SleepTime_Connected", options=[1, 5, 10, 30, 60, 300, 600]
-        ),
+        Property.Select(label="SleepTime_Connected", options=[1, 5, 10, 30, 60, 300, 600]),
         Property.Select(label="SleepTime_Disconnected", options=[1, 5, 10, 30, 60]),
     ]
 )

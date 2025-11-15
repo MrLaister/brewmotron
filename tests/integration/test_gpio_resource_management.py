@@ -203,9 +203,7 @@ class GPIOResourceManager:
                 "timestamp": datetime.now(),
             }
             self.pin_conflicts.append(conflict)
-            raise ValueError(
-                f"GPIO pin {pin} already allocated to {existing[0]} ({existing[1]})"
-            )
+            raise ValueError(f"GPIO pin {pin} already allocated to {existing[0]} ({existing[1]})")
 
         self.allocated_pins[pin] = (plugin_id, plugin_type, mode)
         return True
@@ -278,13 +276,9 @@ class TestGPIOResourceManagement:
         resource_manager = gpio_system["resource_manager"]
 
         # Create GPIO actors on different pins
-        actor1 = await harness.load_plugin(
-            MockGPIOActor, "heater1", {"GPIO": 18, "Inverted": "No"}
-        )
+        actor1 = await harness.load_plugin(MockGPIOActor, "heater1", {"GPIO": 18, "Inverted": "No"})
 
-        actor2 = await harness.load_plugin(
-            MockGPIOActor, "heater2", {"GPIO": 19, "Inverted": "Yes"}
-        )
+        actor2 = await harness.load_plugin(MockGPIOActor, "heater2", {"GPIO": 19, "Inverted": "Yes"})
 
         # Manually register pin allocations (simulating resource manager)
         resource_manager.allocate_pin(18, "heater1", "actor", "OUT")
@@ -299,23 +293,15 @@ class TestGPIOResourceManagement:
         assert await actor2.on(80) == True, "Actor 2 should turn on successfully"
 
         # Verify GPIO states
-        assert (
-            gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH
-        ), "Pin 18 should be HIGH"
-        assert (
-            gpio_system["gpio"].input(19) == gpio_system["gpio"].LOW
-        ), "Pin 19 should be LOW (inverted)"
+        assert gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH, "Pin 18 should be HIGH"
+        assert gpio_system["gpio"].input(19) == gpio_system["gpio"].LOW, "Pin 19 should be LOW (inverted)"
 
         # Release pins
         resource_manager.release_pin(18, "heater1")
         resource_manager.release_pin(19, "heater2")
 
-        assert (
-            resource_manager.get_pin_allocation(18) is None
-        ), "Pin 18 should be released"
-        assert (
-            resource_manager.get_pin_allocation(19) is None
-        ), "Pin 19 should be released"
+        assert resource_manager.get_pin_allocation(18) is None, "Pin 18 should be released"
+        assert resource_manager.get_pin_allocation(19) is None, "Pin 19 should be released"
 
     @pytest.mark.asyncio
     async def test_gpio_pin_conflicts(self, gpio_system):
@@ -324,17 +310,13 @@ class TestGPIOResourceManagement:
         resource_manager = gpio_system["resource_manager"]
 
         # Create first actor on pin 18
-        actor1 = await harness.load_plugin(
-            MockGPIOActor, "heater1", {"GPIO": 18, "Inverted": "No"}
-        )
+        actor1 = await harness.load_plugin(MockGPIOActor, "heater1", {"GPIO": 18, "Inverted": "No"})
 
         # Allocate pin to first actor
         resource_manager.allocate_pin(18, "heater1", "actor", "OUT")
 
         # Try to create second actor on same pin
-        actor2 = await harness.load_plugin(
-            MockGPIOActor, "heater2", {"GPIO": 18, "Inverted": "Yes"}  # Same pin!
-        )
+        actor2 = await harness.load_plugin(MockGPIOActor, "heater2", {"GPIO": 18, "Inverted": "Yes"})  # Same pin!
 
         # Attempt to allocate same pin should cause conflict
         with pytest.raises(ValueError, match="already allocated"):
@@ -346,12 +328,8 @@ class TestGPIOResourceManagement:
 
         conflict = conflicts[0]
         assert conflict["pin"] == 18, "Conflict should be on pin 18"
-        assert (
-            conflict["existing"][0] == "heater1"
-        ), "Existing allocation should be heater1"
-        assert (
-            conflict["requesting"][0] == "heater2"
-        ), "Requesting allocation should be heater2"
+        assert conflict["existing"][0] == "heater1", "Existing allocation should be heater1"
+        assert conflict["requesting"][0] == "heater2", "Requesting allocation should be heater2"
 
     @pytest.mark.asyncio
     async def test_mixed_gpio_plugin_types(self, gpio_system):
@@ -360,17 +338,11 @@ class TestGPIOResourceManagement:
         resource_manager = gpio_system["resource_manager"]
 
         # Create different types of GPIO plugins
-        actor = await harness.load_plugin(
-            MockGPIOActor, "pump", {"GPIO": 18, "Inverted": "No"}
-        )
+        actor = await harness.load_plugin(MockGPIOActor, "pump", {"GPIO": 18, "Inverted": "No"})
 
-        gpio_input = MockGPIOInput(
-            harness.cbpi, "button", {"GPIO": 19, "Pull": "PUD_UP"}
-        )
+        gpio_input = MockGPIOInput(harness.cbpi, "button", {"GPIO": 19, "Pull": "PUD_UP"})
 
-        always_on = await harness.load_plugin(
-            MockAlwaysOnGPIO, "indicator_led", {"GPIO": 20, "ActiveState": "HIGH"}
-        )
+        always_on = await harness.load_plugin(MockAlwaysOnGPIO, "indicator_led", {"GPIO": 20, "ActiveState": "HIGH"})
 
         # Allocate pins for different plugin types
         resource_manager.allocate_pin(18, "pump", "actor", "OUT")
@@ -386,12 +358,8 @@ class TestGPIOResourceManagement:
         assert always_on.state == True, "Always-on should be active"
 
         # Verify GPIO states
-        assert (
-            gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH
-        ), "Actor pin should be HIGH"
-        assert (
-            gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH
-        ), "Always-on pin should be HIGH"
+        assert gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH, "Actor pin should be HIGH"
+        assert gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH, "Always-on pin should be HIGH"
 
         # Test input monitoring
         input_states = []
@@ -421,9 +389,7 @@ class TestGPIOResourceManagement:
         pins = [18, 19, 20, 21]
 
         for i, pin in enumerate(pins):
-            plugin = await harness.load_plugin(
-                MockGPIOActor, f"actor_{i}", {"GPIO": pin, "Inverted": "No"}
-            )
+            plugin = await harness.load_plugin(MockGPIOActor, f"actor_{i}", {"GPIO": pin, "Inverted": "No"})
             plugins.append(plugin)
             resource_manager.allocate_pin(pin, f"actor_{i}", "actor", "OUT")
 
@@ -456,17 +422,11 @@ class TestGPIOResourceManagement:
         resource_manager = gpio_system["resource_manager"]
 
         # Create coordinated actors (OneAtATime behavior)
-        actor1 = await harness.load_plugin(
-            MockGPIOActor, "heater1", {"GPIO": 18, "Inverted": "No"}
-        )
+        actor1 = await harness.load_plugin(MockGPIOActor, "heater1", {"GPIO": 18, "Inverted": "No"})
 
-        actor2 = await harness.load_plugin(
-            MockGPIOActor, "heater2", {"GPIO": 19, "Inverted": "No"}
-        )
+        actor2 = await harness.load_plugin(MockGPIOActor, "heater2", {"GPIO": 19, "Inverted": "No"})
 
-        always_on = await harness.load_plugin(
-            MockAlwaysOnGPIO, "safety_led", {"GPIO": 20, "ActiveState": "HIGH"}
-        )
+        always_on = await harness.load_plugin(MockAlwaysOnGPIO, "safety_led", {"GPIO": 20, "ActiveState": "HIGH"})
 
         # Allocate pins
         resource_manager.allocate_pin(18, "heater1", "actor", "OUT")
@@ -475,40 +435,26 @@ class TestGPIOResourceManagement:
 
         # Test coordinated operation
         await actor1.on(100)
-        assert (
-            gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH
-        ), "Heater 1 should be on"
-        assert (
-            gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH
-        ), "Safety LED should always be on"
+        assert gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH, "Heater 1 should be on"
+        assert gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH, "Safety LED should always be on"
 
         # Switch to second heater (coordination logic would turn off first)
         await actor1.off()
         await actor2.on(80)
 
-        assert (
-            gpio_system["gpio"].input(18) == gpio_system["gpio"].LOW
-        ), "Heater 1 should be off"
-        assert (
-            gpio_system["gpio"].input(19) == gpio_system["gpio"].HIGH
-        ), "Heater 2 should be on"
-        assert (
-            gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH
-        ), "Safety LED should remain on"
+        assert gpio_system["gpio"].input(18) == gpio_system["gpio"].LOW, "Heater 1 should be off"
+        assert gpio_system["gpio"].input(19) == gpio_system["gpio"].HIGH, "Heater 2 should be on"
+        assert gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH, "Safety LED should remain on"
 
         # Try to turn off always-on GPIO (should fail)
         result = await always_on.off()
         assert result == False, "Always-on GPIO should not turn off normally"
-        assert (
-            gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH
-        ), "Safety LED should stay on"
+        assert gpio_system["gpio"].input(20) == gpio_system["gpio"].HIGH, "Safety LED should stay on"
 
         # Force off should work
         result = await always_on.force_off()
         assert result == True, "Force off should work"
-        assert (
-            gpio_system["gpio"].input(20) == gpio_system["gpio"].LOW
-        ), "Safety LED should be forced off"
+        assert gpio_system["gpio"].input(20) == gpio_system["gpio"].LOW, "Safety LED should be forced off"
 
     @pytest.mark.asyncio
     async def test_gpio_error_recovery(self, gpio_system):
@@ -518,9 +464,7 @@ class TestGPIOResourceManagement:
         gpio = gpio_system["gpio"]
 
         # Create actor
-        actor = await harness.load_plugin(
-            MockGPIOActor, "test_actor", {"GPIO": 18, "Inverted": "No"}
-        )
+        actor = await harness.load_plugin(MockGPIOActor, "test_actor", {"GPIO": 18, "Inverted": "No"})
 
         resource_manager.allocate_pin(18, "test_actor", "actor", "OUT")
 
@@ -563,9 +507,7 @@ class TestGPIOResourceManagement:
         pins = [18, 19, 20, 21, 22]
 
         for i, pin in enumerate(pins):
-            actor = await harness.load_plugin(
-                MockGPIOActor, f"concurrent_actor_{i}", {"GPIO": pin, "Inverted": "No"}
-            )
+            actor = await harness.load_plugin(MockGPIOActor, f"concurrent_actor_{i}", {"GPIO": pin, "Inverted": "No"})
             actors.append(actor)
             resource_manager.allocate_pin(pin, f"concurrent_actor_{i}", "actor", "OUT")
 
@@ -591,9 +533,7 @@ class TestGPIOResourceManagement:
             # Verify GPIO pins are in correct state
             expected_value = gpio_system["gpio"].LOW  # Should be off
             actual_value = gpio_system["gpio"].input(pins[i])
-            assert (
-                actual_value == expected_value
-            ), f"Pin {pins[i]} should be {expected_value}, got {actual_value}"
+            assert actual_value == expected_value, f"Pin {pins[i]} should be {expected_value}, got {actual_value}"
 
     @pytest.mark.asyncio
     async def test_gpio_pin_sharing_compatibility(self, gpio_system):
@@ -627,9 +567,7 @@ class TestGPIOResourceManagement:
         resource_manager = gpio_system["resource_manager"]
 
         # Create actor for stress testing
-        actor = await harness.load_plugin(
-            MockGPIOActor, "stress_actor", {"GPIO": 18, "Inverted": "No"}
-        )
+        actor = await harness.load_plugin(MockGPIOActor, "stress_actor", {"GPIO": 18, "Inverted": "No"})
 
         resource_manager.allocate_pin(18, "stress_actor", "actor", "OUT")
 
@@ -649,12 +587,8 @@ class TestGPIOResourceManagement:
 
         # Verify final state is consistent
         assert actor.state == False, "Actor should be off after stress test"
-        assert (
-            gpio_system["gpio"].input(18) == gpio_system["gpio"].LOW
-        ), "GPIO should be LOW"
+        assert gpio_system["gpio"].input(18) == gpio_system["gpio"].LOW, "GPIO should be LOW"
 
         # Verify GPIO is still functional after stress test
         assert await actor.on(100) == True, "Actor should still work after stress test"
-        assert (
-            gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH
-        ), "GPIO should respond correctly"
+        assert gpio_system["gpio"].input(18) == gpio_system["gpio"].HIGH, "GPIO should respond correctly"

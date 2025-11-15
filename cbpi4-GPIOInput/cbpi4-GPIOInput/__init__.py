@@ -101,17 +101,11 @@ class GPIOInput(CBPiActor):
         # if newInput == high: asyncio.create_task(self.on())
         # elif newInput == low: asyncio.create_task(self.off())
         if (newInput == high) and (self.state == False):
-            print(
-                "GPIOInput: event change detected - Off to On - Inverted: "
-                + self.props.get("Inverted")
-            )
+            print("GPIOInput: event change detected - Off to On - Inverted: " + self.props.get("Inverted"))
             self.state = True
             asyncio.create_task(self.on())
         if (newInput == low) and (self.state == True):
-            print(
-                "GPIOInput: event change detected - On to Off - Inverted: "
-                + self.props.get("Inverted")
-            )
+            print("GPIOInput: event change detected - On to Off - Inverted: " + self.props.get("Inverted"))
             self.state = False
             asyncio.create_task(self.off())
         # print(["input GPIO", gpio, "Output Actor",
