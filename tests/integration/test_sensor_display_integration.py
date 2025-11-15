@@ -340,17 +340,30 @@ class TestSensorDisplayIntegration:
         # Set temperature
         mash_sensor.temperature_sensor.set_target_temperature(70.0)
 
-        # Record update timing
+        # Record update timing by wrapping the show() methods
         seg_updates = []
         lcd_updates = []
 
-        # Mock display update methods to track timing
-        original_seg_update = seg_display.update_displays
-        original_lcd_update = lcd_display.update_display
+        # Wrap 7-segment display show() methods to track updates
+        for addr, display in seg_display.displays.items():
+            original_show = display.show
+            def make_tracked_show(update_list, original):
+                def tracked_show():
+                    update_list.append(datetime.now())
+                    return original()
+                return tracked_show
+            display.show = make_tracked_show(seg_updates, original_show)
 
-        # Start both update tracking tasks
-        seg_task = asyncio.create_task(self._track_updates(original_seg_update, seg_updates))
-        lcd_task = asyncio.create_task(self._track_updates(original_lcd_update, lcd_updates))
+        # Wrap LCD display write operations to track updates
+        original_clear = lcd_display.display.clear
+        def tracked_clear():
+            lcd_updates.append(datetime.now())
+            return original_clear()
+        lcd_display.display.clear = tracked_clear
+
+        # Start both display update tasks
+        seg_task = asyncio.create_task(seg_display.update_displays())
+        lcd_task = asyncio.create_task(lcd_display.update_display())
 
         # Run for test period
         await asyncio.sleep(6)
@@ -376,17 +389,6 @@ class TestSensorDisplayIntegration:
         # Check for reasonable update counts over 6 seconds
         assert len(seg_updates) >= 8, f"Expected at least 8 7-seg updates in 6s, got {len(seg_updates)}"
         assert len(lcd_updates) >= 2, f"Expected at least 2 LCD updates in 6s, got {len(lcd_updates)}"
-
-    async def _track_updates(self, update_func, update_list):
-        """Helper to track display update timing."""
-        try:
-            while True:
-                start_time = datetime.now()
-                await update_func()
-                update_list.append(start_time)
-                await asyncio.sleep(0.1)  # Small delay to prevent tight loop
-        except asyncio.CancelledError:
-            pass
 
     @pytest.mark.asyncio
     async def test_temperature_ramping_display_response(self, integration_harness):
