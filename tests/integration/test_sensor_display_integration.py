@@ -347,18 +347,23 @@ class TestSensorDisplayIntegration:
         # Wrap 7-segment display show() methods to track updates
         for addr, display in seg_display.displays.items():
             original_show = display.show
+
             def make_tracked_show(update_list, original):
                 def tracked_show():
                     update_list.append(datetime.now())
                     return original()
+
                 return tracked_show
+
             display.show = make_tracked_show(seg_updates, original_show)
 
         # Wrap LCD display write operations to track updates
         original_clear = lcd_display.display.clear
+
         def tracked_clear():
             lcd_updates.append(datetime.now())
             return original_clear()
+
         lcd_display.display.clear = tracked_clear
 
         # Start both display update tasks
