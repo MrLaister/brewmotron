@@ -124,7 +124,8 @@ class MockRPiGPIO:
             )
 
             logger.debug(
-                f"Pin {p} setup: mode={mode}, pull_up_down={pull_up_down}, initial={initial}"
+                f"Pin {p} setup: mode={mode}, pull_up_down={pull_up_down}, "
+                f"initial={initial}"
             )
 
     def output(self, pin: Union[int, List[int]], value: Union[int, List[int]]) -> None:
@@ -364,7 +365,8 @@ class MockSMBus:
 
             value = device.registers.get(reg, 0)
             logger.debug(
-                f"I2C read_byte_data: addr=0x{addr:02X}, reg=0x{reg:02X} -> 0x{value:02X}"
+                f"I2C read_byte_data: addr=0x{addr:02X}, "
+                f"reg=0x{reg:02X} -> 0x{value:02X}"
             )
             return value
 
@@ -380,7 +382,8 @@ class MockSMBus:
 
             device.registers[reg] = value
             logger.debug(
-                f"I2C write_byte_data: addr=0x{addr:02X}, reg=0x{reg:02X}, value=0x{value:02X}"
+                f"I2C write_byte_data: addr=0x{addr:02X}, "
+                f"reg=0x{reg:02X}, value=0x{value:02X}"
             )
 
     def read_word_data(self, addr: int, reg: int) -> int:
@@ -399,7 +402,8 @@ class MockSMBus:
             value = (high_byte << 8) | low_byte
 
             logger.debug(
-                f"I2C read_word_data: addr=0x{addr:02X}, reg=0x{reg:02X} -> 0x{value:04X}"
+                f"I2C read_word_data: addr=0x{addr:02X}, "
+                f"reg=0x{reg:02X} -> 0x{value:04X}"
             )
             return value
 
@@ -421,7 +425,8 @@ class MockSMBus:
             device.registers[reg + 1] = high_byte
 
             logger.debug(
-                f"I2C write_word_data: addr=0x{addr:02X}, reg=0x{reg:02X}, value=0x{value:04X}"
+                f"I2C write_word_data: addr=0x{addr:02X}, "
+                f"reg=0x{reg:02X}, value=0x{value:04X}"
             )
 
     def read_i2c_block_data(self, addr: int, reg: int, length: int) -> List[int]:
@@ -440,7 +445,8 @@ class MockSMBus:
                 data.append(device.registers.get(reg + i, 0))
 
             logger.debug(
-                f"I2C read_i2c_block_data: addr=0x{addr:02X}, reg=0x{reg:02X}, length={length}"
+                f"I2C read_i2c_block_data: addr=0x{addr:02X}, "
+                f"reg=0x{reg:02X}, length={length}"
             )
             return data
 
@@ -459,7 +465,8 @@ class MockSMBus:
                 device.registers[reg + i] = value
 
             logger.debug(
-                f"I2C write_i2c_block_data: addr=0x{addr:02X}, reg=0x{reg:02X}, data={data}"
+                f"I2C write_i2c_block_data: addr=0x{addr:02X}, "
+                f"reg=0x{reg:02X}, data={data}"
             )
 
     def _get_device(self, addr: int) -> I2CDeviceState:
