@@ -19,9 +19,10 @@ from RPLCD.i2c import CharLCD
 # LCDisplay VERSION = '5.0.9'
 #
 # this plug in is made for CBPI4. Do not use it in CBPI3.
-# The LCD-library and LCD-driver are taken from RPLCD Project version 1.3.0. The documentation:
-# http://rplcd.readthedocs.io/en/stable/ very good and readable. Git is here: https://github.com/dbrgn/RPLCD.
-# The package should be installed automatically. If not install it manually: sudo pip3 install RPLCD
+# The LCD-library and LCD-driver are taken from RPLCD Project version
+# 1.3.0. Documentation: http://rplcd.readthedocs.io/en/stable/
+# GitHub repository: https://github.com/dbrgn/RPLCD
+# Install manually if needed: sudo pip3 install RPLCD
 #
 # LCD_Address should be something like 0x27, 0x3f etc.
 # See in Craftbeerpi-UI (webpage of CBPI4) settings .
@@ -31,18 +32,18 @@ from RPLCD.i2c import CharLCD
 # Assembled by JamFfm
 # 02.04.2021
 # 18.04.2021 progress, thanks to avollkopf
-# 28.04.2021 little progress, heater state can be detected, apparently cbpicodec is not necessary to convert umlaute.
-# I leave it because I would like to handle the A00 parameter as I am not sure if all versions of LCD can use umlaute.
+# 28.04.2021 heater state detection added; cbpicodec not necessary
+# for umlaute conversion. Kept for A00 parameter compatibility.
 # 13.05.2021 fixed boilstep detection with hoptimer
 # 15.05.2021 added multimode
 # 16.05.2021 added sensormode
-# 05.06.2021 added function to select a sensor via GUI (craftbeerpi4-ui enhancement from avollkopf necessary)
-# and sensormode shows all sensors of same sensortype. This is activated by default now.
-# To activate this function with Maunels repo please change
+# 05.06.2021 added function to select a sensor via GUI
+# (craftbeerpi4-ui enhancement from avollkopf required)
+# Sensormode shows all sensors of same type; enabled by default.
+# To activate with Manuel's repo, change:
 # set_lcd_sensortype_for_sensor_mode to set_lcd_sensortype_for_sensor_mode2
-# and change
-# set_lcd_sensortype_for_sensor_mode1 into set_lcd_sensortype_for_sensor_mode.
-# 20.09.2021 removed RPLCD source files. Instead the package has to be installed. This is done by
+# and set_lcd_sensortype_for_sensor_mode1 to set_lcd_sensortype_for_sensor_mode
+# 20.09.2021 removed RPLCD source files; requires package installation
 #
 # pipy related installation of plugin:
 # goto folder where CBPI4 is installed (at least the folder which is containing the config folder)

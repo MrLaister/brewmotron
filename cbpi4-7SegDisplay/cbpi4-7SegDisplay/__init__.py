@@ -29,13 +29,19 @@ from smbus import SMBus
 logger = logging.getLogger(__name__)
 DEBUG = True  # turn True to show (much) more debug info in app.log
 
-# TODO!! - There's a bug that causes spargey boi to kill the hardware html page when displaying information on the 7seg which needs debugging. Doesn't seem to be caused by the sensor type - maybe some data type handling?
-# TODO - activeLEDKettleMap genericising to the settings menu - pop in 3x LEDs for association with an active boiler and move to a separate plugin
-# TODO - make the settings menu lookup functions and select more generic if possible
-# TODO - Add in the push buttons to progress a running process - should this be a separate plugin? --> Can be, yes
-# TODO - clean up the running code and see if I can move things to states of attributes and not throwing around arbitrary data
-# TODO (Later) - should this be just a brewmotron plugin and we also do the mode switch here? --> initial thoughts that some other code does this if I2C bus access contention isn't an issue. How does it drive the state?
-# TODO (Later) - add in Units (they are commented out at the moment, need adding back in) - C/F. Currently is C only
+# TODO!! - Bug: 7seg display kills hardware html page when displaying
+# information. Needs debugging. Not caused by sensor type - check data
+# type handling.
+# TODO - Make LED kettle map generic in settings menu; add 3x LEDs for
+# boiler association; move to separate plugin
+# TODO - Make settings menu lookup functions generic if possible
+# TODO - Add push buttons to progress running process; could be separate
+# plugin
+# TODO - Clean up running code; use states/attributes instead of
+# arbitrary data
+# TODO (Later) - Make this just a brewmotron plugin with mode switching;
+# check I2C contention handling
+# TODO (Later) - Add Units (C/F); currently C only
 
 try:
     import RPi.GPIO as GPIO
@@ -199,14 +205,15 @@ class SSDisplay(CBPiExtension):
         if DEBUG:
             logger.info("Seven Segment Display - Info: Display setup complete")
 
-        # *********************************************************************************************************
+        # ************************************************************
+        # ************************************************************
         while True:
             # this is the main code repeated constantly
             refresh_time = await self.set_display_refresh()
             [active_step_name, active_step_temp_target, target_kettle] = (
                 await self.get_active_step_values()
             )
-            # here's where the selected LEDs can go and be mapped to active_state['name']. They need to be defined in the settings.
+            # LEDs can be mapped to active_state['name']; define in settings
             for display in self.sevSeg:
                 display.mode = await self.set_display_mode(display.number)
                 display.kettle = await self.set_kettle(display.number)
