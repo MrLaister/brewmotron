@@ -74,7 +74,7 @@ class OneAtATime(CBPiActor):
                     + " ON"
                 )
                 self.state = True
-                if self.power == None:
+                if self.power is None:
                     self.power = 100
                 await self.cbpi.actor.on(self.props["actor"], self.power)
             else:

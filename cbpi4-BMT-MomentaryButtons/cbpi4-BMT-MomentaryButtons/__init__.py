@@ -21,7 +21,7 @@ except Exception:
     import RPi.GPIO as GPIO
 
 mode = GPIO.getmode()
-if mode == None:
+if mode is None:
     GPIO.setmode(GPIO.BCM)
 
 

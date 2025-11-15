@@ -177,7 +177,7 @@ class MockBrewingController:
         for actor in actors:
             try:
                 await self.cbpi.actor.off(actor)
-            except:
+            except Exception:
                 pass  # Actor might not exist
 
     async def _should_advance_phase(self) -> bool:
@@ -198,7 +198,7 @@ class MockBrewingController:
                     return temp_reached and min_time_elapsed
 
                 return temp_reached
-            except:
+            except Exception:
                 return True  # Advance if sensor not available
 
         return True  # No conditions, advance
@@ -456,7 +456,7 @@ class TestBrewingWorkflow:
                 is_active = await harness.cbpi.actor.get_state(actor_id)
                 if is_active:
                     active_actors.append(actor_id)
-            except:
+            except Exception:
                 pass
 
         # In OneAtATime system, should have at most one actor active

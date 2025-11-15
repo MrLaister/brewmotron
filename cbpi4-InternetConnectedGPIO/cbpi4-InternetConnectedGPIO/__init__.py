@@ -18,7 +18,7 @@ except Exception:
     import RPi.GPIO as GPIO
 
 mode = GPIO.getmode()
-if mode == None:
+if mode is None:
     GPIO.setmode(GPIO.BCM)
 
 
@@ -86,13 +86,13 @@ class GPIOInternetConnected(CBPiActor):
                     self.state = True
                     try:
                         asyncio.create_task(self.on())
-                    except:
+                    except Exception:
                         pass
                 else:
                     self.state = False
                     try:
                         asyncio.create_task(self.off())
-                    except:
+                    except Exception:
                         pass
             if self.state == True:
                 refreshtime = self.props.get("SleepTime_Connected", 30)

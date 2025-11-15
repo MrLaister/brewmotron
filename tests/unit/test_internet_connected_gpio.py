@@ -207,12 +207,12 @@ class TestInternetConnectedGPIO:
                         if state:
                             try:
                                 await self.on()
-                            except:
+                            except Exception:
                                 pass
                         else:
                             try:
                                 await self.off()
-                            except:
+                            except Exception:
                                 pass
 
                     # Record sleep time based on state

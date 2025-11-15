@@ -17,7 +17,7 @@ except Exception:
     import RPi.GPIO as GPIO
 
 mode = GPIO.getmode()
-if mode == None:
+if mode is None:
     GPIO.setmode(GPIO.BCM)
 
 
@@ -74,7 +74,7 @@ class GPIOAON(CBPiActor):
     def get_state(self):
         try:
             asyncio.create_task(self.on())
-        except:
+        except Exception:
             pass
         return True
 

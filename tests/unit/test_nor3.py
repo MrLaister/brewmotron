@@ -117,7 +117,7 @@ class TestNOR3:
                     return False
                 try:
                     return await self.cbpi.actor.get_state(actor_id)
-                except:
+                except Exception:
                     return False
 
         plugin = await plugin_harness.load_plugin(

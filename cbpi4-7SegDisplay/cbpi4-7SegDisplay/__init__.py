@@ -449,7 +449,7 @@ class SSDisplay(CBPiExtension):
                     pass
                     try:
                         last_active_step_target_kettle = str(step["props"]["Kettle"])
-                    except:
+                    except Exception:
                         pass
                     # active_step_timer_value = ("Timer: %s" % (steps[i]["props"]["Timer"])) --> Taken out, but could use later if BMT wants
                     return [
