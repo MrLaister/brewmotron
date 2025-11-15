@@ -217,6 +217,25 @@ class MockTempSensorI2CPlugin(MockI2CDevice):
         """Set target temperature for simulation."""
         self.temperature = temp
 
+        # Calculate the raw ADC value that would produce this temperature
+        # Reverse the conversion formula used in read_temperature():
+        # voltage = (raw_value / 32768.0) * 4.096
+        # temperature = 20.0 + (voltage * 10)
+        voltage = (temp - 20.0) / 10.0
+        raw_value = int((voltage / 4.096) * 32768.0)
+
+        # Ensure value is within 16-bit range (allow wrapping for high temperatures)
+        raw_value = raw_value & 0xFFFF
+
+        # Select the correct ADC channel first (ADS1115 requires channel selection)
+        # Channel is encoded in bits 14-12 of the config register
+        config_reg = 0x8583 | (self.channel << 12)
+        self.bus.write_word_data(self.address, 0x01, config_reg)
+
+        # Write to the conversion register (0x00) in the mock I2C device
+        # The mock will store this value for the currently selected channel
+        self.bus.write_word_data(self.address, 0x00, raw_value)
+
 
 class MockLCDI2CPlugin(MockI2CDevice):
     """Mock LCD display plugin with I2C operations."""

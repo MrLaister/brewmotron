@@ -73,7 +73,6 @@ class MockBrewingController:
         """Start the brewing process."""
         self._running = True
         self._task = asyncio.create_task(self._brewing_loop())
-        await self._change_phase(BrewingPhase.MASH_HEAT)
 
     async def stop_brewing(self):
         """Stop the brewing process."""
@@ -711,7 +710,8 @@ class TestBrewingWorkflow:
         await brewing_controller.start_brewing()
 
         # Wait for several phase transitions
-        await asyncio.sleep(20)
+        # Need at least 26 seconds to complete MASH_HEAT(10s) + MASH_HOLD(15s) + buffer
+        await asyncio.sleep(27)
 
         # Analyze phase timing
         phase_history = brewing_controller.phase_history
@@ -726,7 +726,7 @@ class TestBrewingWorkflow:
 
             # Each phase should have minimum duration (accounting for test timing)
             assert duration >= 1.0, f"Phase {previous_phase['phase'].value} too short: {duration}s"
-            assert duration <= 15.0, f"Phase {previous_phase['phase'].value} too long: {duration}s"
+            assert duration <= 16.0, f"Phase {previous_phase['phase'].value} too long: {duration}s"
 
         # Verify logical phase sequence
         phase_names = [entry["phase"].value for entry in phase_history]
