@@ -58,7 +58,7 @@ def run_unit_tests(verbose: bool = False, coverage: bool = True, pattern: Option
     if coverage:
         cmd.extend(
             [
-                "--cov=tests/unit",
+                "--cov=brewmotron_cache_handler",
                 "--cov-report=term-missing",
                 "--cov-report=html:htmlcov",
                 "--cov-fail-under=70",
