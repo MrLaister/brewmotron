@@ -23,6 +23,7 @@ Version: 1.0.0 (Phase 1 - Core Cache)
 
 from .cache_entry import CacheEntry
 from .cache_store import CacheType, DataCache
+from .event_bus import Event, EventBus, EventTopic
 
 __version__ = "1.0.0"
-__all__ = ["CacheEntry", "DataCache", "CacheType"]
+__all__ = ["CacheEntry", "DataCache", "CacheType", "EventBus", "EventTopic", "Event"]
