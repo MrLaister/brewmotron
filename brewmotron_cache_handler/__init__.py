@@ -22,6 +22,7 @@ Version: 1.0.0 (Phase 1 - Core Cache)
 """
 
 from .cache_entry import CacheEntry
+from .cache_handler import CBPI4CacheHandler
 from .cache_store import CacheType, DataCache
 from .event_bus import Event, EventBus, EventTopic
 from .i2c_coordinator import I2CCoordinator, I2COperation, I2CPriority
@@ -37,4 +38,5 @@ __all__ = [
     "I2CCoordinator",
     "I2COperation",
     "I2CPriority",
+    "CBPI4CacheHandler",
 ]
