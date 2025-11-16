@@ -2,6 +2,18 @@
 
 This file tracks planned enhancements and future work for the brewmotron cache handler.
 
+## Immediate - Clean Up Event Bus References
+
+- [ ] **Update CBPI4_DATA_ACCESS_ARCHITECTURE.md**
+  - Remove event bus from architecture diagrams (line 164, 215)
+  - Remove event subscription code examples (lines 246, 254-255, 509-510)
+  - Remove "Shared Event Bus" benefit section (lines 270-273)
+  - Remove Event Bus component section (lines 358+)
+  - Remove event bus from testing strategy (line 539)
+  - Remove Appendix C: Event Bus Topics (lines 651+)
+  - Update "After" example to show polling with cache instead of subscriptions
+  - Clarify that plugins still poll, but through cache with TTL
+
 ## Phase 5: Configuration & User Experience
 
 ### High Priority
@@ -59,20 +71,20 @@ This file tracks planned enhancements and future work for the brewmotron cache h
 
 - [ ] **Migrate 7SegDisplay Plugin**
   - Replace direct cbpi4 API calls with cache handler
-  - Implement event-driven updates
-  - Remove polling loops
-  - Use I2C coordinator
+  - Use singleton pattern: `cache = await get_cache_handler(cbpi_instance=cbpi)`
+  - Continue polling with cache (cache handles TTL automatically)
+  - Use I2C coordinator for display updates
 
 - [ ] **Migrate LCDisplay Plugin**
   - Replace direct cbpi4 API calls with cache handler
-  - Implement event-driven updates
-  - Remove polling loops
-  - Use I2C coordinator
+  - Use singleton pattern: `cache = await get_cache_handler()`
+  - Continue polling with cache (cache handles TTL automatically)
+  - Use I2C coordinator for display updates
 
 - [ ] **Migrate BMT-Key Plugin**
   - Replace direct cbpi4 API calls with cache handler
-  - Implement event-driven updates
-  - Remove polling loops
+  - Use singleton pattern: `cache = await get_cache_handler()`
+  - Continue polling with cache (cache handles TTL automatically)
 
 ## Documentation & Guides
 
