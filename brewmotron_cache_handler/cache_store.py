@@ -144,7 +144,7 @@ class DataCache:
                 # Fetch fresh data
                 try:
                     fresh_data = await fetch_func()
-                    await self.set(cache_type, fresh_data)
+                    self._set_internal(cache_type, fresh_data)
                     self._stats["refreshes"] += 1
                     logger.debug("Cache refreshed: %s (forced=%s)", cache_type.value, force_refresh)
                     return fresh_data
@@ -166,6 +166,31 @@ class DataCache:
             )
             return cache_entry.data
 
+    def _set_internal(self, cache_type: CacheType, data: Any) -> None:
+        """
+        Internal method to set cache without acquiring lock.
+        Must only be called when lock is already held.
+
+        Args:
+            cache_type: Type of cache to update
+            data: Data to cache
+        """
+        ttl = self.get_ttl(cache_type)
+        cache_entry = self._caches.get(cache_type)
+
+        if cache_entry is None:
+            # Create new cache entry
+            self._caches[cache_type] = CacheEntry(
+                data=data,
+                ttl=ttl,
+                cache_type=cache_type.value,
+            )
+            logger.debug("Cache created: %s", cache_type.value)
+        else:
+            # Refresh existing entry
+            cache_entry.refresh(data)
+            logger.debug("Cache updated: %s", cache_type.value)
+
     async def set(self, cache_type: CacheType, data: Any) -> None:
         """
         Set cache entry with fresh data.
@@ -175,21 +200,7 @@ class DataCache:
             data: Data to cache
         """
         async with self._lock:
-            ttl = self.get_ttl(cache_type)
-            cache_entry = self._caches.get(cache_type)
-
-            if cache_entry is None:
-                # Create new cache entry
-                self._caches[cache_type] = CacheEntry(
-                    data=data,
-                    ttl=ttl,
-                    cache_type=cache_type.value,
-                )
-                logger.debug("Cache created: %s", cache_type.value)
-            else:
-                # Refresh existing entry
-                cache_entry.refresh(data)
-                logger.debug("Cache updated: %s", cache_type.value)
+            self._set_internal(cache_type, data)
 
     async def invalidate(self, cache_type: Optional[CacheType] = None) -> None:
         """
