@@ -5,9 +5,11 @@ Tests multi-cache store with TTL management, async operations,
 statistics tracking, and cache invalidation.
 """
 
-import pytest
 import asyncio
-from brewmotron_cache_handler.cache_store import DataCache, CacheType
+
+import pytest
+
+from brewmotron_cache_handler.cache_store import CacheType, DataCache
 
 
 class TestDataCache:
@@ -280,8 +282,10 @@ class TestDataCache:
 
         async def fetch_and_store(delay):
             await asyncio.sleep(delay)
+
             async def fetch_data():
                 return {"delay": delay}
+
             result = await cache.get(CacheType.ACTOR, fetch_func=fetch_data, force_refresh=True)
             results.append(result)
 

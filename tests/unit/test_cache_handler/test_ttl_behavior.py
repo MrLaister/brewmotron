@@ -5,11 +5,13 @@ Tests the interaction between CacheEntry TTL and DataCache expiration
 handling, including edge cases and timing-sensitive scenarios.
 """
 
-import pytest
 import asyncio
 import time
-from brewmotron_cache_handler.cache_store import DataCache, CacheType
+
+import pytest
+
 from brewmotron_cache_handler.cache_entry import CacheEntry
+from brewmotron_cache_handler.cache_store import CacheType, DataCache
 
 
 class TestTTLBehavior:

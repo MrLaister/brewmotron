@@ -6,8 +6,8 @@ Each cache entry stores data, timestamp, and TTL for intelligent caching.
 """
 
 import time
-from typing import Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Optional
 
 
 @dataclass

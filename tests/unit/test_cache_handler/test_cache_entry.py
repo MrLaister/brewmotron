@@ -5,8 +5,10 @@ Tests cache entry data model including TTL validation, age tracking,
 refresh capability, and serialization.
 """
 
-import pytest
 import time
+
+import pytest
+
 from brewmotron_cache_handler.cache_entry import CacheEntry
 
 

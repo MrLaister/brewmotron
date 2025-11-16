@@ -22,7 +22,7 @@ Version: 1.0.0 (Phase 1 - Core Cache)
 """
 
 from .cache_entry import CacheEntry
-from .cache_store import DataCache, CacheType
+from .cache_store import CacheType, DataCache
 
 __version__ = "1.0.0"
 __all__ = ["CacheEntry", "DataCache", "CacheType"]

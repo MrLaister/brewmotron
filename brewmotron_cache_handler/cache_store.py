@@ -8,7 +8,8 @@ Provides a centralized store for Step, Kettle, Sensor, Actor, and Config data.
 import asyncio
 import logging
 from enum import Enum
-from typing import Any, Optional, Callable, Awaitable
+from typing import Any, Awaitable, Callable, Optional
+
 from .cache_entry import CacheEntry
 
 logger = logging.getLogger(__name__)
@@ -124,18 +125,12 @@ class DataCache:
             cache_entry = self._caches.get(cache_type)
 
             # Check if we need to fetch fresh data
-            needs_fetch = (
-                force_refresh
-                or cache_entry is None
-                or not cache_entry.is_valid()
-            )
+            needs_fetch = force_refresh or cache_entry is None or not cache_entry.is_valid()
 
             if needs_fetch:
                 if fetch_func is None:
                     if cache_entry is None:
-                        raise ValueError(
-                            f"No cached data for {cache_type.value} and no fetch function provided"
-                        )
+                        raise ValueError(f"No cached data for {cache_type.value} and no fetch function provided")
                     # Return stale data if no fetch function
                     logger.warning(
                         "Returning stale data for %s (age: %.2fs, ttl: %.2fs)",
@@ -151,9 +146,7 @@ class DataCache:
                     fresh_data = await fetch_func()
                     await self.set(cache_type, fresh_data)
                     self._stats["refreshes"] += 1
-                    logger.debug(
-                        "Cache refreshed: %s (forced=%s)", cache_type.value, force_refresh
-                    )
+                    logger.debug("Cache refreshed: %s (forced=%s)", cache_type.value, force_refresh)
                     return fresh_data
                 except Exception as e:
                     logger.error("Failed to fetch fresh data for %s: %s", cache_type.value, e)
@@ -241,9 +234,7 @@ class DataCache:
             dict: Statistics including hits, misses, hit rate, etc.
         """
         total_requests = self._stats["hits"] + self._stats["misses"]
-        hit_rate = (
-            self._stats["hits"] / total_requests if total_requests > 0 else 0.0
-        )
+        hit_rate = self._stats["hits"] / total_requests if total_requests > 0 else 0.0
 
         return {
             "hits": self._stats["hits"],
@@ -252,10 +243,7 @@ class DataCache:
             "invalidations": self._stats["invalidations"],
             "total_requests": total_requests,
             "hit_rate": hit_rate,
-            "cache_states": {
-                ct.value: "valid" if self.is_valid(ct) else "invalid"
-                for ct in CacheType
-            },
+            "cache_states": {ct.value: "valid" if self.is_valid(ct) else "invalid" for ct in CacheType},
         }
 
     def reset_stats(self) -> None:
