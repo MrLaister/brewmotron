@@ -163,7 +163,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
 
-    - name: Run integration tests (Phase 1: Skipped during cache handler conversion)
+    - name: Run integration tests (Phase 1 - Skipped during cache handler conversion)
       run: |
         pytest tests/integration/ \
           --verbose \
@@ -206,7 +206,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-test.txt
 
-    - name: Run hardware simulation tests (Phase 1: Skipped during cache handler conversion)
+    - name: Run hardware simulation tests (Phase 1 - Skipped during cache handler conversion)
       run: |
         pytest tests/ \
           --verbose \
