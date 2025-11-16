@@ -144,13 +144,16 @@ Each display plugin has configurable parameters:
 
 ### Planned Improvements
 
-#### Cache Handler Architecture (Recommended)
+#### Cache Handler Architecture (Recommended - In Development)
 A comprehensive data access optimization proposal is documented in `CBPI4_DATA_ACCESS_ARCHITECTURE.md`:
 - **94% reduction** in API calls through intelligent caching
 - **Event-driven updates** replacing polling (1-6s latency → <100ms)
 - **I2C coordination** eliminating bus conflicts
 - **Async-first design** for non-blocking data access
-- See `CBPI4_DATA_ACCESS_ARCHITECTURE.md` for detailed architecture diagrams and implementation plan
+- See `CBPI4_DATA_ACCESS_ARCHITECTURE.md` for detailed architecture diagrams
+- See `DEPLOYMENT_STEPS.md` for phased implementation plan and progress tracking
+
+**Development Status**: Implementation in progress on feature branch `claude/docs-data-cache-handler-0176zAUiFmLSRcaZQPygf8YB`. Main branch remains stable for production use. Deployment to main will occur after complete validation (estimated 5-7 weeks).
 
 #### Alternative Refactor Plan
 A comprehensive refactor is documented in `BREWMOTRON_REFACTOR_PLAN.md` to:
@@ -173,6 +176,7 @@ A comprehensive refactor is documented in `BREWMOTRON_REFACTOR_PLAN.md` to:
 │   └── conftest.py                   # Global test configuration
 ├── .github/workflows/                # CI/CD pipeline configuration
 ├── CBPI4_DATA_ACCESS_ARCHITECTURE.md # Data access optimization proposal
+├── DEPLOYMENT_STEPS.md               # Cache handler implementation roadmap
 ├── RASPBERRYPI_SETUP.md              # Hardware setup guide
 ├── requirements-test.txt             # Testing dependencies
 ├── run_tests.py                      # Test runner script
