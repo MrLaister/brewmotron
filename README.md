@@ -137,15 +137,27 @@ Each display plugin has configurable parameters:
 ## Known Issues & Future Development
 
 ### Current Limitations
-- Performance issues due to excessive state polling across plugins
+- Performance issues due to excessive state polling across plugins (~327 API calls/minute)
 - I2C bus contention from uncoordinated device access
 - Lack of centralized configuration management
+- Synchronous blocking calls in async contexts
 
 ### Planned Improvements
+
+#### Cache Handler Architecture (Recommended)
+A comprehensive data access optimization proposal is documented in `CBPI4_DATA_ACCESS_ARCHITECTURE.md`:
+- **94% reduction** in API calls through intelligent caching
+- **Event-driven updates** replacing polling (1-6s latency → <100ms)
+- **I2C coordination** eliminating bus conflicts
+- **Async-first design** for non-blocking data access
+- See `CBPI4_DATA_ACCESS_ARCHITECTURE.md` for detailed architecture diagrams and implementation plan
+
+#### Alternative Refactor Plan
 A comprehensive refactor is documented in `BREWMOTRON_REFACTOR_PLAN.md` to:
 - Consolidate plugins into coordinated monolithic architecture
 - Implement centralized I2C and state management
 - Maintain modularity for future development
+- ⚠️ Note: Cache handler approach is recommended as a less disruptive alternative
 
 **⚠️ Testing Infrastructure Status** - Comprehensive automated testing framework operational with hardware mocking capabilities. Integration tests have known failures requiring resolution.
 
@@ -153,16 +165,18 @@ A comprehensive refactor is documented in `BREWMOTRON_REFACTOR_PLAN.md` to:
 
 ### File Structure
 ```
-├── cbpi4-*/                # Individual CraftBeerPi4 plugins
-├── tests/                  # Comprehensive testing infrastructure
-│   ├── unit/              # Unit tests for individual plugins
-│   ├── integration/       # Integration tests
-│   ├── fixtures/          # Test fixtures and mocks
-│   └── conftest.py        # Global test configuration
-├── .github/workflows/     # CI/CD pipeline configuration
-├── requirements-test.txt  # Testing dependencies
-├── run_tests.py          # Test runner script
-├── pytest.ini           # Test configuration
+├── cbpi4-*/                           # Individual CraftBeerPi4 plugins
+├── tests/                             # Comprehensive testing infrastructure
+│   ├── unit/                         # Unit tests for individual plugins
+│   ├── integration/                  # Integration tests
+│   ├── fixtures/                     # Test fixtures and mocks
+│   └── conftest.py                   # Global test configuration
+├── .github/workflows/                # CI/CD pipeline configuration
+├── CBPI4_DATA_ACCESS_ARCHITECTURE.md # Data access optimization proposal
+├── RASPBERRYPI_SETUP.md              # Hardware setup guide
+├── requirements-test.txt             # Testing dependencies
+├── run_tests.py                      # Test runner script
+├── pytest.ini                        # Test configuration
 └── README.md
 ```
 
