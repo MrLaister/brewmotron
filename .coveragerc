@@ -1,0 +1,31 @@
+# Coverage configuration for Brewmotron
+# PHASE 1: During cache handler integration, focus on cache handler coverage only
+
+[run]
+# Measure coverage for cache handler module only during Phase 1
+source = brewmotron_cache_handler
+# Omit test files from coverage measurement
+omit =
+    tests/*
+    */test_*.py
+    */__pycache__/*
+
+[report]
+# Fail if cache handler coverage is below 70%
+fail_under = 70
+skip_covered = False
+# Exclude test directories from coverage report
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml
