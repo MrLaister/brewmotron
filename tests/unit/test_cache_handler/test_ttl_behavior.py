@@ -238,9 +238,11 @@ class TestTTLBehavior:
 
         # Entry is fresh
         assert entry.is_valid() is True
-        old_age = entry.age()
 
         await asyncio.sleep(0.05)
+
+        # Measure age after sleep to create meaningful difference
+        old_age = entry.age()
 
         # Refresh with new data
         entry.refresh({"new": "value"})
