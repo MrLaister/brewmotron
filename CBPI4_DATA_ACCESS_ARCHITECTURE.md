@@ -190,6 +190,153 @@ PROBLEM: No deduplication or caching!
    └────────────────┴────────────────────┴──────────────┴──────────────────────┘
 ```
 
+### Deployment Architecture: Singleton Pattern
+
+The cache handler uses a **singleton pattern** to ensure all brewmotron plugins share a single cache instance. This maximizes the benefits of caching and I2C coordination while maintaining isolation from other 3rd party CraftBeerPi4 plugins.
+
+#### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     CraftBeerPi4 Core System                             │
+│                  (step, kettle, sensor, actor, config)                   │
+└────────────────────────────────┬────────────────────────────────────────┘
+                                 │
+                    ┌────────────┴────────────┐
+                    │                         │
+       ┌────────────▼──────────┐    ┌────────▼──────────────┐
+       │ CBPI4 Cache Handler   │    │  Direct API Access    │
+       │   (Singleton)         │    │  (Traditional Path)   │
+       │                       │    │                       │
+       │ • Single instance     │    │ • No caching          │
+       │ • Shared across all   │    │ • Direct get_state()  │
+       │   brewmotron plugins  │    │   calls               │
+       │ • I2C coordinator     │    │                       │
+       │ • Event bus           │    │                       │
+       └───────────┬───────────┘    └───────────┬───────────┘
+                   │                            │
+       ┌───────────┴──────────────┐             │
+       │                          │             │
+   ┌───▼────┐  ┌────▼─────┐  ┌───▼────┐   ┌────▼──────┐
+   │7SegDisp│  │LCDisplay │  │BMT-Key │   │3rd Party  │
+   │(Plugin)│  │(Plugin)  │  │(Plugin)│   │Plugins    │
+   │        │  │          │  │        │   │           │
+   │Shared  │  │Shared    │  │Shared  │   │No cache   │
+   │Cache   │  │Cache     │  │Cache   │   │(opt-in)   │
+   └────────┘  └──────────┘  └────────┘   └───────────┘
+
+   Brewmotron Plugins              Other CraftBeerPi4 Plugins
+   (use shared cache)              (direct cbpi4 access)
+```
+
+#### Singleton Factory Pattern
+
+The cache handler provides a `get_cache_handler()` factory function that creates and manages a global shared instance:
+
+```python
+from brewmotron_cache_handler import get_cache_handler
+
+# First plugin to initialize (typically 7SegDisplay or LCDisplay)
+class SevenSegmentDisplay(CBPiExtension):
+    async def __init__(self, cbpi):
+        # First call creates the singleton and starts it
+        self.cache = await get_cache_handler(cbpi_instance=cbpi)
+
+        # Subscribe to events
+        await self.cache.subscribe_to_step_changes(self.on_step_changed)
+
+# Subsequent brewmotron plugins
+class LCDisplay(CBPiExtension):
+    async def __init__(self, cbpi):
+        # Gets the SAME instance (no cbpi_instance needed)
+        self.cache = await get_cache_handler()
+
+        # Share the same cache, event bus, and I2C coordinator
+        await self.cache.subscribe_to_kettle_updates(self.on_kettle_updated)
+```
+
+#### Benefits of Singleton Pattern
+
+1. **Single I2C Coordinator**: All brewmotron plugins share ONE I2C queue
+   - True bus coordination (no duplicate queues)
+   - Prevents hardware conflicts across all plugins
+   - Centralized priority scheduling
+
+2. **Maximum API Call Reduction**: Single cache serves all plugins
+   - One fetch from cbpi4 benefits ALL plugins
+   - Cache hit rate maximized
+   - ~94% reduction in API calls (327 → <20 calls/min)
+
+3. **Shared Event Bus**: Events published once, received by all subscribers
+   - Memory efficient (one event history)
+   - Consistent state across all displays
+   - Real-time synchronization
+
+4. **No CraftBeerPi4 Core Changes**: Works with stock cbpi4
+   - No modifications to cbpi4 core required
+   - Compatible with all cbpi4 versions
+   - Safe to deploy alongside other plugins
+
+#### Opt-In for 3rd Party Plugins
+
+Other CraftBeerPi4 plugins can **optionally** use the cache handler by:
+
+1. Adding `brewmotron-cache-handler` as a dependency
+2. Using `get_cache_handler()` in their plugin code
+
+```python
+# 3rd party plugin opting in to shared cache
+from brewmotron_cache_handler import get_cache_handler
+
+class ThirdPartyPlugin(CBPiSensor):
+    async def __init__(self, cbpi):
+        # Join the shared cache ecosystem
+        self.cache = await get_cache_handler()
+
+        # Now benefits from caching and I2C coordination
+        sensor_state = await self.cache.get_sensor_state()
+```
+
+**Default Behavior**: 3rd party plugins continue using `cbpi.step.get_state()` directly unless they explicitly opt-in.
+
+#### Thread Safety and Initialization
+
+The singleton uses `asyncio.Lock` to ensure thread-safe initialization:
+
+```python
+# Safe concurrent access from multiple plugins
+async with _global_lock:
+    if _global_cache_handler is None:
+        # Only first caller creates instance
+        _global_cache_handler = CBPI4CacheHandler(cbpi_instance=cbpi)
+        await _global_cache_handler.start()
+
+    return _global_cache_handler  # Subsequent callers get existing instance
+```
+
+**First Call Rules**:
+- MUST provide `cbpi_instance` parameter
+- Creates and starts the cache handler
+- Raises `ValueError` if cbpi_instance is missing
+
+**Subsequent Calls**:
+- Can omit `cbpi_instance` parameter
+- Returns existing shared instance
+- No initialization overhead
+
+#### Testing and Reset
+
+For testing purposes, the singleton can be reset:
+
+```python
+from brewmotron_cache_handler import reset_cache_handler
+
+# Reset for clean test state (NOT for production use)
+await reset_cache_handler()
+```
+
+**Warning**: `reset_cache_handler()` should NEVER be called in production code, as it disrupts all plugins using the cache.
+
 ### Cache Handler Components
 
 #### 1. **Cache Store**
@@ -346,16 +493,21 @@ class SSDisplay(CBPiExtension):
             await asyncio.sleep(3)  # Poll every 3 seconds
 ```
 
-### After (Cache Handler Pattern):
+### After (Cache Handler Pattern with Singleton):
 ```python
+from brewmotron_cache_handler import get_cache_handler
+
 class SSDisplay(CBPiExtension):
-    def __init__(self, cbpi):
+    async def __init__(self, cbpi):
         self.cbpi = cbpi
-        self.cache = CBPI4CacheHandler(cbpi)
+
+        # Get shared cache instance (singleton pattern)
+        # First plugin to load provides cbpi_instance, others can omit it
+        self.cache = await get_cache_handler(cbpi_instance=cbpi)
 
         # Subscribe to events instead of polling
-        self.cache.subscribe_to_step_changes(self.on_step_changed)
-        self.cache.subscribe_to_kettle_updates(self.on_kettle_updated)
+        await self.cache.subscribe_to_step_changes(self.on_step_changed)
+        await self.cache.subscribe_to_kettle_updates(self.on_kettle_updated)
 
     async def on_step_changed(self, step_data):
         """Called automatically when step state changes"""
@@ -373,9 +525,10 @@ class SSDisplay(CBPiExtension):
 **Benefits**:
 - No more polling loops
 - Instant updates on state changes
-- Coordinated I2C access
+- Coordinated I2C access (shared singleton across all plugins)
 - Async-first design
 - Reduced CPU usage
+- Maximum cache hit rate (single shared cache instance)
 
 ---
 

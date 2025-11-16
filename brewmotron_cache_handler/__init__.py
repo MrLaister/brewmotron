@@ -26,6 +26,7 @@ from .cache_handler import CBPI4CacheHandler
 from .cache_store import CacheType, DataCache
 from .event_bus import Event, EventBus, EventTopic
 from .i2c_coordinator import I2CCoordinator, I2COperation, I2CPriority
+from .singleton import get_cache_handler, get_cache_handler_sync, reset_cache_handler
 
 __version__ = "1.0.0"
 __all__ = [
@@ -39,4 +40,7 @@ __all__ = [
     "I2COperation",
     "I2CPriority",
     "CBPI4CacheHandler",
+    "get_cache_handler",
+    "get_cache_handler_sync",
+    "reset_cache_handler",
 ]
