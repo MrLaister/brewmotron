@@ -21,16 +21,13 @@ This file tracks planned enhancements and future work for the brewmotron cache h
 
 ### Medium Priority
 
-- [ ] **Event-Driven Cache Invalidation**
-  - Integrate with cbpi4's event system for immediate cache invalidation
-  - Subscribe to cbpi4 events:
-    - `step/changed` → invalidate step cache
-    - `kettle/updated` → invalidate kettle cache
-    - `sensor/updated` → invalidate sensor cache
-    - `actor/changed` → invalidate actor cache
-    - `config/updated` → invalidate config cache
-  - Eliminate staleness between updates
-  - Provide instant UI updates instead of waiting for TTL expiration
+- [ ] **Manual Event Publishing Helpers**
+  - Add convenience methods for plugins to publish events when they modify data
+  - Example: `await cache.publish_step_changed(step_data)`
+  - Document event publishing patterns in migration guide
+  - Encourage plugins to publish events after mutations
+  - **Note**: cbpi4 has NO native event system, so automation is not possible
+  - **Approach**: Rely on TTL-based caching + manual event publishing
 
 - [ ] **Cache Performance Metrics Dashboard**
   - Add cbpi4 UI page showing cache statistics:
@@ -44,17 +41,16 @@ This file tracks planned enhancements and future work for the brewmotron cache h
 
 ### Low Priority
 
-- [ ] **Adaptive TTL Tuning**
-  - Automatically adjust TTL based on data change frequency
-  - Monitor actual update rates for each cache type
-  - Increase TTL if data rarely changes (reduce API calls)
-  - Decrease TTL if data changes frequently (improve freshness)
-  - User override option to disable auto-tuning
-
 - [ ] **Cache Warming on Startup**
   - Pre-fetch all cache types when cbpi4 starts
   - Reduce first-access latency
-  - Optional background task to keep cache warm
+  - Warm cache immediately after singleton initialization
+
+- [ ] **Enhanced Event Bus Features**
+  - Event filtering (subscribers can filter by data properties)
+  - Event priority/ordering
+  - Persistent event history to disk (optional)
+  - Event replay for debugging
 
 ## Phase 6: Advanced Features
 
@@ -139,6 +135,73 @@ This file tracks planned enhancements and future work for the brewmotron cache h
 - [x] **Phase 4.5**: Singleton Pattern (singleton.py)
 - [x] **Documentation**: CBPI4_DATA_ACCESS_ARCHITECTURE.md
 - [x] **Testing**: 209 tests with 96.87% coverage
+
+---
+
+## Event Bus Architecture - Current State
+
+### What the Event Bus Provides (Already Implemented ✅)
+
+The event bus is a **pub/sub infrastructure** for plugin-to-plugin communication:
+
+```python
+# Plugins can subscribe to events
+await cache.subscribe_to_step_changes(callback)
+await cache.subscribe_to_kettle_updates(callback)
+await cache.subscribe_to_sensor_values(callback)
+
+# Plugins can manually publish events
+await cache._event_bus.publish(EventTopic.STEP_CHANGED, data)
+```
+
+### Current Use Cases
+
+1. **Manual Event Publishing**: Plugins publish events when they KNOW data changed
+   ```python
+   # Plugin modifies step
+   await cbpi.step.start_next()
+   await cache.invalidate(CacheType.STEP)
+   await cache._event_bus.publish(EventTopic.STEP_CHANGED, step_data)
+   ```
+
+2. **Plugin-to-Plugin Communication**: Instant notifications between plugins
+   ```python
+   # BMT-Key publishes button press
+   await cache._event_bus.publish(EventTopic.ACTOR_STATE, actor_data)
+
+   # 7SegDisplay receives notification instantly
+   async def on_actor_changed(event):
+       await update_display(event.data)
+   ```
+
+3. **TTL-Based Caching**: Default approach for most use cases
+   - Cache automatically expires based on TTL (250ms-60s)
+   - Plugins call `cache.get_X_state()` which fetches only if TTL expired
+   - **94% reduction** in API calls (327 → <20 calls/min)
+   - Acceptable staleness for brewing (500ms-1s)
+
+### What the Event Bus Does NOT Do ❌
+
+- **No automatic event publishing**: Nothing watches cbpi4 for changes
+- **No cbpi4 integration**: cbpi4 has no native event system to hook into
+- **No background monitoring**: No polling loop detecting changes (would increase API calls)
+
+### Recommended Approach
+
+1. **Primary**: Use TTL-based caching (current implementation)
+   - Lazy/reactive: only fetches when plugins request data
+   - Shared cache: multiple plugins benefit from single fetch
+   - Bounded staleness: 500ms-1s is acceptable for brewing
+
+2. **Secondary**: Manual event publishing when plugins modify data
+   - Plugin invalidates cache after mutation
+   - Plugin publishes event to notify other plugins
+   - Other plugins receive instant updates via subscriptions
+
+3. **Future**: If cbpi4 adds native events, integrate with them
+   - Currently not possible (cbpi4 has no event system)
+   - Would enable automatic cache invalidation
+   - Deferred until cbpi4 provides this capability
 
 ---
 
