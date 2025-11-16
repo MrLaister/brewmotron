@@ -21,7 +21,10 @@ from tests.fixtures.test_data import PluginConfigFactory
 # Mark all tests in this module as integration tests
 # PHASE 2: Temporarily skipped during cache handler conversion
 # These plugin integration tests will be re-enabled after plugins are refactored to use cache handler
-pytestmark = [pytest.mark.integration, pytest.mark.skip(reason="Phase 2: Plugin refactoring - re-enable after cache handler integration")]
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.skip(reason="Phase 2: Plugin refactoring - re-enable after cache handler integration"),
+]
 
 
 class MockI2CDevice:
