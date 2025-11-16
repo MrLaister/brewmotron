@@ -22,7 +22,6 @@ _global_lock: Optional[asyncio.Lock] = None
 async def get_cache_handler(
     cbpi_instance: Optional[Any] = None,
     enable_i2c: bool = True,
-    cache_history_size: int = 100,
     i2c_queue_size: int = 1000,
 ) -> CBPI4CacheHandler:
     """
@@ -32,7 +31,6 @@ async def get_cache_handler(
     cache handler instance, providing:
     - Single I2C coordinator (true bus coordination)
     - Shared cache (maximum API call reduction)
-    - Event bus shared across all plugins
 
     The first call MUST provide cbpi_instance. Subsequent calls from other
     plugins can omit it and will receive the same shared instance.
@@ -40,7 +38,6 @@ async def get_cache_handler(
     Args:
         cbpi_instance: CraftBeerPi4 instance (required on first call)
         enable_i2c: Whether to enable I2C coordinator (default: True)
-        cache_history_size: Event history size (default: 100)
         i2c_queue_size: Max I2C queue size (default: 1000)
 
     Returns:
@@ -75,7 +72,6 @@ async def get_cache_handler(
             _global_cache_handler = CBPI4CacheHandler(
                 cbpi_instance=cbpi_instance,
                 enable_i2c=enable_i2c,
-                cache_history_size=cache_history_size,
                 i2c_queue_size=i2c_queue_size,
             )
             await _global_cache_handler.start()

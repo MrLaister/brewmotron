@@ -1,7 +1,7 @@
 """
 Main Cache Handler API for CraftBeerPi4.
 
-Provides a unified facade integrating cache store, event bus, and I2C coordinator
+Provides a unified facade integrating cache store and I2C coordinator
 for simplified plugin access to brewing data.
 """
 
@@ -9,7 +9,6 @@ import logging
 from typing import Any, Callable, Dict, Optional
 
 from .cache_store import CacheType, DataCache
-from .event_bus import Event, EventBus, EventTopic
 from .i2c_coordinator import I2CCoordinator, I2CPriority
 
 logger = logging.getLogger(__name__)
@@ -19,9 +18,8 @@ class CBPI4CacheHandler:
     """
     Unified cache handler for CraftBeerPi4 plugins.
 
-    Integrates cache store, event bus, and I2C coordinator to provide:
+    Integrates cache store and I2C coordinator to provide:
     - Fast cached data access with automatic TTL expiration
-    - Event-driven updates to eliminate polling
     - Coordinated I2C bus access to prevent conflicts
     """
 
@@ -29,7 +27,6 @@ class CBPI4CacheHandler:
         self,
         cbpi_instance: Optional[Any] = None,
         enable_i2c: bool = True,
-        cache_history_size: int = 100,
         i2c_queue_size: int = 1000,
     ):
         """
@@ -38,12 +35,10 @@ class CBPI4CacheHandler:
         Args:
             cbpi_instance: CraftBeerPi4 instance for data fetching
             enable_i2c: Whether to enable I2C coordinator (default: True)
-            cache_history_size: Event history size (default: 100)
             i2c_queue_size: Max I2C queue size (default: 1000)
         """
         self._cbpi = cbpi_instance
         self._cache = DataCache(cbpi=cbpi_instance)
-        self._event_bus = EventBus(history_size=cache_history_size)
         self._i2c_coordinator = I2CCoordinator(max_queue_size=i2c_queue_size) if enable_i2c else None
         self._running = False
 
@@ -229,85 +224,6 @@ class CBPI4CacheHandler:
             Cache info dictionary or None
         """
         return await self._cache.get_cache_info(cache_type)
-
-    # Event Subscription Methods
-
-    async def subscribe_to_step_changes(self, callback: Callable[[Event], Any]) -> None:
-        """
-        Subscribe to step state change events.
-
-        Args:
-            callback: Async function to call on step changes
-        """
-        await self._event_bus.subscribe(EventTopic.STEP_CHANGED, callback)
-
-    async def subscribe_to_kettle_updates(self, callback: Callable[[Event], Any]) -> None:
-        """
-        Subscribe to kettle update events.
-
-        Args:
-            callback: Async function to call on kettle updates
-        """
-        await self._event_bus.subscribe(EventTopic.KETTLE_UPDATED, callback)
-
-    async def subscribe_to_sensor_values(self, callback: Callable[[Event], Any]) -> None:
-        """
-        Subscribe to sensor value change events.
-
-        Args:
-            callback: Async function to call on sensor value changes
-        """
-        await self._event_bus.subscribe(EventTopic.SENSOR_VALUE, callback)
-
-    async def subscribe_to_actor_state(self, callback: Callable[[Event], Any]) -> None:
-        """
-        Subscribe to actor state change events.
-
-        Args:
-            callback: Async function to call on actor state changes
-        """
-        await self._event_bus.subscribe(EventTopic.ACTOR_STATE, callback)
-
-    async def subscribe_to_config_updates(self, callback: Callable[[Event], Any]) -> None:
-        """
-        Subscribe to config update events.
-
-        Args:
-            callback: Async function to call on config updates
-        """
-        await self._event_bus.subscribe(EventTopic.CONFIG_UPDATED, callback)
-
-    async def unsubscribe(self, topic: EventTopic, callback: Callable[[Event], Any]) -> bool:
-        """
-        Unsubscribe from events.
-
-        Args:
-            topic: Event topic to unsubscribe from
-            callback: Callback function to remove
-
-        Returns:
-            True if unsubscribed, False if not found
-        """
-        return await self._event_bus.unsubscribe(topic, callback)
-
-    async def publish_event(self, topic: EventTopic, data: Any) -> None:
-        """
-        Publish an event (for manual event triggering).
-
-        Args:
-            topic: Event topic to publish to
-            data: Event data
-        """
-        await self._event_bus.publish(topic, data)
-
-    def get_event_stats(self) -> Dict:
-        """
-        Get event bus statistics.
-
-        Returns:
-            Dictionary with event statistics
-        """
-        return self._event_bus.get_statistics()
 
     # I2C Coordination Methods
 

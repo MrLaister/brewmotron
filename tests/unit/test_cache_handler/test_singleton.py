@@ -234,21 +234,6 @@ class TestSingleton:
         await reset_cache_handler()
 
     @pytest.mark.asyncio
-    async def test_shared_event_bus(self):
-        """Test multiple plugins share the same event bus."""
-        await reset_cache_handler()
-
-        cbpi = MockCBPI()
-
-        cache1 = await get_cache_handler(cbpi_instance=cbpi)
-        cache2 = await get_cache_handler()
-
-        # Should share event bus
-        assert cache1._event_bus is cache2._event_bus
-
-        await reset_cache_handler()
-
-    @pytest.mark.asyncio
     async def test_custom_configuration_on_first_call(self):
         """Test custom configuration is respected on first call."""
         await reset_cache_handler()
@@ -257,12 +242,10 @@ class TestSingleton:
         handler = await get_cache_handler(
             cbpi_instance=cbpi,
             enable_i2c=False,
-            cache_history_size=50,
             i2c_queue_size=500,
         )
 
         assert handler._i2c_coordinator is None  # I2C disabled
-        assert handler._event_bus._history_size == 50
 
         await reset_cache_handler()
 

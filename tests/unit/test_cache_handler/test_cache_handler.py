@@ -11,7 +11,6 @@ import pytest
 
 from brewmotron_cache_handler.cache_handler import CBPI4CacheHandler
 from brewmotron_cache_handler.cache_store import CacheType
-from brewmotron_cache_handler.event_bus import Event, EventTopic
 from brewmotron_cache_handler.i2c_coordinator import I2CPriority
 
 
@@ -60,7 +59,6 @@ class TestCBPI4CacheHandler:
         handler = CBPI4CacheHandler()
         assert handler is not None
         assert handler._cache is not None
-        assert handler._event_bus is not None
         assert handler._i2c_coordinator is not None
 
     @pytest.mark.asyncio
@@ -268,127 +266,6 @@ class TestCBPI4CacheHandler:
         assert info is not None
 
     @pytest.mark.asyncio
-    async def test_subscribe_to_step_changes(self):
-        """Test subscribing to step change events."""
-        handler = CBPI4CacheHandler()
-
-        callback_called = False
-
-        async def callback(event: Event):
-            nonlocal callback_called
-            callback_called = True
-
-        await handler.subscribe_to_step_changes(callback)
-        await handler.publish_event(EventTopic.STEP_CHANGED, {"step": "boil"})
-
-        await asyncio.sleep(0.01)
-        assert callback_called is True
-
-    @pytest.mark.asyncio
-    async def test_subscribe_to_kettle_updates(self):
-        """Test subscribing to kettle update events."""
-        handler = CBPI4CacheHandler()
-
-        received_data = None
-
-        async def callback(event: Event):
-            nonlocal received_data
-            received_data = event.data
-
-        await handler.subscribe_to_kettle_updates(callback)
-        await handler.publish_event(EventTopic.KETTLE_UPDATED, {"kettle": "mash_tun"})
-
-        await asyncio.sleep(0.01)
-        assert received_data == {"kettle": "mash_tun"}
-
-    @pytest.mark.asyncio
-    async def test_subscribe_to_sensor_values(self):
-        """Test subscribing to sensor value events."""
-        handler = CBPI4CacheHandler()
-
-        callback_called = False
-
-        async def callback(event: Event):
-            nonlocal callback_called
-            callback_called = True
-
-        await handler.subscribe_to_sensor_values(callback)
-        await handler.publish_event(EventTopic.SENSOR_VALUE, {"sensor": "temp1"})
-
-        await asyncio.sleep(0.01)
-        assert callback_called is True
-
-    @pytest.mark.asyncio
-    async def test_subscribe_to_actor_state(self):
-        """Test subscribing to actor state events."""
-        handler = CBPI4CacheHandler()
-
-        callback_called = False
-
-        async def callback(event: Event):
-            nonlocal callback_called
-            callback_called = True
-
-        await handler.subscribe_to_actor_state(callback)
-        await handler.publish_event(EventTopic.ACTOR_STATE, {"actor": "pump"})
-
-        await asyncio.sleep(0.01)
-        assert callback_called is True
-
-    @pytest.mark.asyncio
-    async def test_subscribe_to_config_updates(self):
-        """Test subscribing to config update events."""
-        handler = CBPI4CacheHandler()
-
-        callback_called = False
-
-        async def callback(event: Event):
-            nonlocal callback_called
-            callback_called = True
-
-        await handler.subscribe_to_config_updates(callback)
-        await handler.publish_event(EventTopic.CONFIG_UPDATED, {"key": "value"})
-
-        await asyncio.sleep(0.01)
-        assert callback_called is True
-
-    @pytest.mark.asyncio
-    async def test_unsubscribe(self):
-        """Test unsubscribing from events."""
-        handler = CBPI4CacheHandler()
-
-        call_count = 0
-
-        async def callback(event: Event):
-            nonlocal call_count
-            call_count += 1
-
-        await handler.subscribe_to_step_changes(callback)
-        await handler.publish_event(EventTopic.STEP_CHANGED, {"step": "mash"})
-        await asyncio.sleep(0.01)
-
-        # Unsubscribe
-        result = await handler.unsubscribe(EventTopic.STEP_CHANGED, callback)
-        assert result is True
-
-        # Publish again - should not trigger callback
-        await handler.publish_event(EventTopic.STEP_CHANGED, {"step": "boil"})
-        await asyncio.sleep(0.01)
-
-        assert call_count == 1
-
-    @pytest.mark.asyncio
-    async def test_get_event_stats(self):
-        """Test getting event statistics."""
-        handler = CBPI4CacheHandler()
-
-        await handler.publish_event(EventTopic.STEP_CHANGED, {"step": "mash"})
-
-        stats = handler.get_event_stats()
-        assert "events_published" in stats
-        assert stats["events_published"] >= 1
-
-    @pytest.mark.asyncio
     async def test_i2c_write(self):
         """Test I2C write operation."""
         handler = CBPI4CacheHandler()
@@ -525,26 +402,3 @@ class TestCBPI4CacheHandler:
 
         repr_str = repr(handler)
         assert "i2c=disabled" in repr_str
-
-    @pytest.mark.asyncio
-    async def test_integration_data_and_events(self):
-        """Test integration of data access and events."""
-        cbpi = MockCBPI()
-        handler = CBPI4CacheHandler(cbpi_instance=cbpi)
-
-        received_events = []
-
-        async def callback(event: Event):
-            received_events.append(event.data)
-
-        # Subscribe to sensor events
-        await handler.subscribe_to_sensor_values(callback)
-
-        # Get sensor data (this could trigger event)
-        await handler.get_sensor_state()
-
-        # Manually publish event
-        await handler.publish_event(EventTopic.SENSOR_VALUE, {"sensor": "temp1", "value": 66.0})
-
-        await asyncio.sleep(0.01)
-        assert len(received_events) >= 1
