@@ -111,7 +111,12 @@ jobs:
           --verbose \
           --tb=short \
           --timeout=300 \
-          --cov=tests/unit \
+          --cov=brewmotron_cache_handler \
+          --cov=cbpi4-7SegDisplay \
+          --cov=cbpi4-LCDisplay \
+          --cov=cbpi4-i2cTempSensor \
+          --cov=cbpi4-OneAtATime \
+          --cov=cbpi4-BMT-Key \
           --cov-report=xml \
           --cov-report=term-missing \
           --cov-fail-under=70 \
@@ -162,7 +167,12 @@ jobs:
         pytest tests/integration/ \
           --verbose \
           --tb=short \
-          --cov=tests/integration \
+          --cov=brewmotron_cache_handler \
+          --cov=cbpi4-7SegDisplay \
+          --cov=cbpi4-LCDisplay \
+          --cov=cbpi4-i2cTempSensor \
+          --cov=cbpi4-OneAtATime \
+          --cov=cbpi4-BMT-Key \
           --cov-report=xml \
           --cov-report=term-missing \
           -m "integration"
