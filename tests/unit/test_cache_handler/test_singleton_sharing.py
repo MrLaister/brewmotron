@@ -79,7 +79,6 @@ class TestSingletonCacheSharing:
         # CBPi API should only be called once due to caching
         assert mock_cbpi.step.get_state.call_count == 1
 
-    @pytest.mark.xfail(reason="TODO: Fix cache stats/invalidation async timing")
     @pytest.mark.asyncio
     async def test_cache_invalidation_affects_all_plugins(self, mock_cbpi):
         """Test that cache invalidation affects all plugin views."""
@@ -94,7 +93,7 @@ class TestSingletonCacheSharing:
         assert mock_cbpi.kettle.get_state.call_count == 1
 
         # Plugin 1 invalidates kettle cache
-        cache1.invalidate(CacheType.KETTLE)
+        await cache1.invalidate(CacheType.KETTLE)
 
         # Plugin 2 fetches again - should call CBPi again
         await cache2.get_kettle_state()
@@ -121,7 +120,6 @@ class TestSingletonCacheSharing:
         # Both should see the same queue state
         assert queue_size_1 == queue_size_2
 
-    @pytest.mark.xfail(reason="TODO: Fix cache stats/invalidation async timing")
     @pytest.mark.asyncio
     async def test_cache_stats_shared_across_plugins(self, mock_cbpi):
         """Test that cache statistics are shared across plugins."""
@@ -139,7 +137,6 @@ class TestSingletonCacheSharing:
         assert stats["step"]["hits"] >= 1
         assert stats["step"]["misses"] >= 1
 
-    @pytest.mark.xfail(reason="TODO: Fix cache stats/invalidation async timing")
     @pytest.mark.asyncio
     async def test_concurrent_plugin_cache_access(self, mock_cbpi):
         """Test concurrent cache access from multiple plugins."""
@@ -253,7 +250,6 @@ class TestSingletonCacheSharing:
         # Should be significantly less than 24 (the non-cached total)
         assert total_api_calls < 24
 
-    @pytest.mark.xfail(reason="TODO: Fix cache stats/invalidation async timing")
     @pytest.mark.asyncio
     async def test_singleton_reset_clears_for_all_plugins(self, mock_cbpi):
         """Test that resetting singleton affects all plugin references."""
@@ -308,7 +304,6 @@ class TestSingletonCacheSharing:
         ttl2 = cache2.get_cache_ttl(CacheType.STEP)
         assert ttl2 == 5.0
 
-    @pytest.mark.xfail(reason="TODO: Fix cache stats/invalidation async timing")
     @pytest.mark.asyncio
     async def test_all_cache_invalidation_affects_all_plugins(self, mock_cbpi):
         """Test that invalidating all caches affects all plugins."""
@@ -326,7 +321,7 @@ class TestSingletonCacheSharing:
         sensor_calls_before = mock_cbpi.sensor.get_state.call_count
 
         # Plugin 1 invalidates all caches
-        cache1.invalidate_all()
+        await cache1.invalidate_all()
 
         # Plugin 2 fetches again - should call APIs
         await cache2.get_step_state()
