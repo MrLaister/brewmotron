@@ -120,7 +120,8 @@ This file tracks planned enhancements and future work for the brewmotron cache h
 - [x] **Phase 4**: Main Cache Handler API (cache_handler.py)
 - [x] **Phase 4.5**: Singleton Pattern (singleton.py)
 - [x] **Documentation**: CBPI4_DATA_ACCESS_ARCHITECTURE.md (updated to remove event bus)
-- [x] **Testing**: 150 tests passing (112 unit + 38 integration)
+- [x] **Testing**: 322 tests total (213 unit + 77 integration + 32 real_plugin)
+  - Cache Handler: 164 tests (126 unit + 38 integration)
 
 ---
 
