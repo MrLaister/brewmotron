@@ -434,6 +434,7 @@ class TestBrewingWorkflow:
         await harness.cleanup()
 
     @pytest.mark.asyncio
+    @pytest.mark.timeout(60)  # Complex workflow simulation needs 25+ seconds
     async def test_complete_brewing_process(self, brewing_system):
         """Test complete brewing process from start to finish."""
         brewing_controller = brewing_system["brewing_controller"]
@@ -656,6 +657,7 @@ class TestBrewingWorkflow:
         await brewing_controller.stop_brewing()
 
     @pytest.mark.asyncio
+    @pytest.mark.timeout(30)  # Concurrent operations need 15+ seconds
     async def test_concurrent_system_operations(self, brewing_system):
         """Test system behavior with multiple concurrent operations."""
         brewing_controller = brewing_system["brewing_controller"]
@@ -726,6 +728,7 @@ class TestBrewingWorkflow:
             pass
 
     @pytest.mark.asyncio
+    @pytest.mark.timeout(30)  # Phase timing validation needs 17+ seconds
     async def test_brewing_phase_timing_validation(self, brewing_system):
         """Test that brewing phases follow proper timing constraints."""
         brewing_controller = brewing_system["brewing_controller"]
