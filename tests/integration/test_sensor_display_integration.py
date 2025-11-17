@@ -409,6 +409,7 @@ class TestSensorDisplayIntegration:
         assert len(lcd_updates) >= 2, f"Expected at least 2 LCD updates in 6s, got {len(lcd_updates)}"
 
     @pytest.mark.asyncio
+    @pytest.mark.timeout(20)  # Temperature ramping needs 10+ seconds (5 temps × 2s each)
     async def test_temperature_ramping_display_response(self, integration_harness):
         """Test display response to temperature changes over time."""
         harness = integration_harness["harness"]
@@ -441,4 +442,9 @@ class TestSensorDisplayIntegration:
                 0,
             ], f"Display should show data at {target_temp}°C"
 
+        # Properly await task cancellation
         display_task.cancel()
+        try:
+            await display_task
+        except asyncio.CancelledError:
+            pass
