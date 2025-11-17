@@ -617,6 +617,7 @@ class TestBrewingWorkflow:
         await brewing_controller.stop_brewing()
 
     @pytest.mark.asyncio
+    @pytest.mark.timeout(20)  # Error handling test needs 10+ seconds for sleeps
     async def test_error_handling_during_brewing(self, brewing_system):
         """Test system behavior when errors occur during brewing."""
         brewing_controller = brewing_system["brewing_controller"]
