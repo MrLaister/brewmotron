@@ -161,13 +161,6 @@ PROBLEM: No deduplication or caching!
 │  └────────────────────────────────────────────────────────────────────────┘  │
 │                                                                               │
 │  ┌────────────────────────────────────────────────────────────────────────┐  │
-│  │ EVENT BUS (Pub/Sub)                                                     │  │
-│  │                                                                         │  │
-│  │  Topics: step_changed, kettle_updated, sensor_value, actor_state       │  │
-│  │  Subscribers: [7SegDisplay, LCDisplay, BMT-Key, ...]                   │  │
-│  └────────────────────────────────────────────────────────────────────────┘  │
-│                                                                               │
-│  ┌────────────────────────────────────────────────────────────────────────┐  │
 │  │ I2C COORDINATOR (Hardware Bus Manager)                                  │  │
 │  │                                                                         │  │
 │  │  Queue: [display_update_1, display_update_2, sensor_read, ...]         │  │
@@ -212,7 +205,7 @@ The cache handler uses a **singleton pattern** to ensure all brewmotron plugins 
        │ • Shared across all   │    │ • Direct get_state()  │
        │   brewmotron plugins  │    │   calls               │
        │ • I2C coordinator     │    │                       │
-       │ • Event bus           │    │                       │
+       │ • TTL-based cache     │    │                       │
        └───────────┬───────────┘    └───────────┬───────────┘
                    │                            │
        ┌───────────┴──────────────┐             │
@@ -242,8 +235,12 @@ class SevenSegmentDisplay(CBPiExtension):
         # First call creates the singleton and starts it
         self.cache = await get_cache_handler(cbpi_instance=cbpi)
 
-        # Subscribe to events
-        await self.cache.subscribe_to_step_changes(self.on_step_changed)
+    async def run(self):
+        # Continue polling, but through cache (TTL handles freshness)
+        while self.running:
+            step_state = await self.cache.get_step_state()
+            await self.update_display(step_state)
+            await asyncio.sleep(3)  # Poll interval
 
 # Subsequent brewmotron plugins
 class LCDisplay(CBPiExtension):
@@ -251,8 +248,12 @@ class LCDisplay(CBPiExtension):
         # Gets the SAME instance (no cbpi_instance needed)
         self.cache = await get_cache_handler()
 
-        # Share the same cache, event bus, and I2C coordinator
-        await self.cache.subscribe_to_kettle_updates(self.on_kettle_updated)
+    async def run(self):
+        # Share the same cache and I2C coordinator
+        while self.running:
+            kettle_state = await self.cache.get_kettle_state()
+            await self.update_display(kettle_state)
+            await asyncio.sleep(3)  # Poll interval
 ```
 
 #### Benefits of Singleton Pattern
@@ -267,12 +268,7 @@ class LCDisplay(CBPiExtension):
    - Cache hit rate maximized
    - ~94% reduction in API calls (327 → <20 calls/min)
 
-3. **Shared Event Bus**: Events published once, received by all subscribers
-   - Memory efficient (one event history)
-   - Consistent state across all displays
-   - Real-time synchronization
-
-4. **No CraftBeerPi4 Core Changes**: Works with stock cbpi4
+3. **No CraftBeerPi4 Core Changes**: Works with stock cbpi4
    - No modifications to cbpi4 core required
    - Compatible with all cbpi4 versions
    - Safe to deploy alongside other plugins
@@ -355,22 +351,7 @@ class DataCache:
     config_cache: CacheEntry    # TTL: 60s (rarely changes)
 ```
 
-#### 2. **Event Bus**
-```python
-class EventBus:
-    topics = {
-        'step_changed': [],      # Subscribers notified on step state change
-        'kettle_updated': [],    # Kettle temp/target changes
-        'sensor_value': [],      # Sensor reading updates
-        'actor_state': [],       # Actor on/off/power changes
-        'config_updated': [],    # Configuration changes
-    }
-
-    async def publish(topic: str, data: dict)
-    async def subscribe(topic: str, callback: callable)
-```
-
-#### 3. **I2C Coordinator**
+#### 2. **I2C Coordinator**
 ```python
 class I2CCoordinator:
     queue: asyncio.Queue
@@ -381,7 +362,7 @@ class I2CCoordinator:
     async def process_queue()  # Background task
 ```
 
-#### 4. **Cache Handler API**
+#### 3. **Cache Handler API**
 ```python
 class CBPI4CacheHandler:
     # Async data access (replaces direct cbpi.*.get_state() calls)
@@ -394,10 +375,6 @@ class CBPI4CacheHandler:
     # Cache management
     async def invalidate(cache_type: str)
     async def refresh_all()
-
-    # Event subscriptions
-    async def subscribe_to_step_changes(callback)
-    async def subscribe_to_kettle_updates(callback)
 
     # I2C coordination
     async def i2c_write(address, data)
@@ -413,13 +390,13 @@ class CBPI4CacheHandler:
 **Deliverables**:
 - `brewmotron_cache_handler/` package
 - `cache_store.py` - TTL-based caching logic
-- `event_bus.py` - Pub/sub implementation
+- `singleton.py` - Singleton pattern for shared cache
 - Unit tests with >80% coverage
 
 **Tasks**:
 1. Create cache handler package structure
 2. Implement TTL-based cache with automatic expiration
-3. Build event bus with topic-based pub/sub
+3. Implement singleton factory pattern
 4. Add comprehensive logging and metrics
 5. Write unit tests for cache invalidation and TTL behavior
 
@@ -496,6 +473,7 @@ class SSDisplay(CBPiExtension):
 ### After (Cache Handler Pattern with Singleton):
 ```python
 from brewmotron_cache_handler import get_cache_handler
+import asyncio
 
 class SSDisplay(CBPiExtension):
     async def __init__(self, cbpi):
@@ -505,30 +483,32 @@ class SSDisplay(CBPiExtension):
         # First plugin to load provides cbpi_instance, others can omit it
         self.cache = await get_cache_handler(cbpi_instance=cbpi)
 
-        # Subscribe to events instead of polling
-        await self.cache.subscribe_to_step_changes(self.on_step_changed)
-        await self.cache.subscribe_to_kettle_updates(self.on_kettle_updated)
+    async def run(self):
+        # Continue polling, but through cache (TTL handles freshness automatically)
+        while self.running:
+            # Cached async calls (fetches from cbpi4 only if TTL expired)
+            step_data = await self.cache.get_step_state()
+            kettle_data = await self.cache.get_kettle_state()
+            sensor_value = await self.cache.get_sensor_value(sensor_id)
 
-    async def on_step_changed(self, step_data):
-        """Called automatically when step state changes"""
-        await self.update_display(step_data)
+            # Process and display
+            await self.update_display(step_data, kettle_data, sensor_value)
 
-    async def on_kettle_updated(self, kettle_data):
-        """Called automatically when kettle state changes"""
-        await self.update_display(kettle_data)
+            # Poll interval can be shorter - cache prevents excessive API calls
+            await asyncio.sleep(3)
 
-    async def update_display(self, data):
+    async def update_display(self, step_data, kettle_data, sensor_value):
         # Use I2C coordinator instead of direct I2C
         await self.cache.i2c_write(0x70, formatted_data)
 ```
 
 **Benefits**:
-- No more polling loops
-- Instant updates on state changes
-- Coordinated I2C access (shared singleton across all plugins)
-- Async-first design
-- Reduced CPU usage
-- Maximum cache hit rate (single shared cache instance)
+- **94% reduction in API calls** - Multiple plugins share cached data
+- **Coordinated I2C access** - Shared singleton prevents bus conflicts
+- **Async-first design** - Non-blocking cache operations
+- **Automatic TTL management** - Cache freshness handled transparently
+- **Maximum cache hit rate** - Single shared cache instance
+- **Plugins keep polling** - Familiar pattern, cache handles optimization
 
 ---
 
@@ -536,19 +516,19 @@ class SSDisplay(CBPiExtension):
 
 ### Unit Tests
 - Cache TTL expiration logic
-- Event bus pub/sub mechanics
 - I2C queue priority handling
 - Cache invalidation scenarios
+- Singleton pattern behavior
 
 ### Integration Tests
 - Multiple plugins accessing cache simultaneously
-- Event propagation across subscribers
+- Shared singleton across plugins
 - I2C coordinator under high load
 - Cache warming on startup
 
 ### Performance Tests
 - Benchmark API call reduction
-- Measure event delivery latency
+- Measure cache hit rates
 - I2C throughput testing
 - Memory usage profiling
 
@@ -564,9 +544,8 @@ class SSDisplay(CBPiExtension):
 
 | Risk                          | Impact | Mitigation                                     |
 |-------------------------------|--------|------------------------------------------------|
-| Cache staleness               | Medium | Aggressive TTL tuning, event-driven updates    |
+| Cache staleness               | Medium | Aggressive TTL tuning, manual invalidation     |
 | Memory usage (large state)    | Low    | LRU eviction, configurable cache size limits   |
-| Event bus overhead            | Low    | Async event delivery, subscriber rate limiting |
 | I2C queue backlog             | Medium | Priority queue, backlog monitoring, alerts     |
 | Plugin compatibility          | High   | Backward-compatible wrapper, gradual migration |
 | Race conditions (async)       | Medium | Proper locking, immutable cache entries        |
@@ -587,9 +566,9 @@ class SSDisplay(CBPiExtension):
 - **Pros**: Deepest integration possible
 - **Cons**: Breaks modularity, hard to maintain across CBPI4 versions
 
-### 4. **In-Memory Cache with Event Bus** (Selected)
-- **Pros**: Zero dependencies, low latency, simple implementation
-- **Cons**: Cache lost on restart (acceptable - data is ephemeral)
+### 4. **In-Memory TTL-Based Cache** (Selected)
+- **Pros**: Zero dependencies, low latency, simple implementation, no cbpi4 modifications needed
+- **Cons**: Cache lost on restart (acceptable - data is ephemeral), bounded staleness by TTL
 
 ---
 
@@ -601,7 +580,7 @@ The proposed cache handler architecture addresses all identified performance bot
 ✅ **Removes data duplication** - Single shared cache for all plugins
 ✅ **Enables async patterns** - Non-blocking data access
 ✅ **Coordinates I2C access** - Zero bus contention
-✅ **Provides real-time updates** - Event-driven state changes
+✅ **Maintains plugin isolation** - Communication through cbpi4 core
 
 **Next Steps**:
 1. Review this proposal with stakeholders
@@ -647,17 +626,6 @@ The proposed cache handler architecture addresses all identified performance bot
 | Sensor Value | 0.5-30s          | 500ms           | Fast sensors need frequent updates          |
 | Actor State  | On-demand        | 250ms           | State changes are critical, low latency     |
 | Config       | Rare             | 60000ms         | Configuration rarely changes during brewing |
-
-### Appendix C: Event Bus Topics
-
-| Topic              | Published When                     | Typical Subscribers          |
-|--------------------|------------------------------------|-----------------------------|
-| `step_changed`     | Brewing step starts/stops          | 7SegDisplay, LCDisplay      |
-| `kettle_updated`   | Kettle temp/target changes         | 7SegDisplay, LCDisplay      |
-| `sensor_value`     | Sensor reading available           | All displays                |
-| `actor_state`      | Actor on/off/power change          | BMT-Key, OneAtATime         |
-| `config_updated`   | Configuration modified             | All plugins (rare)          |
-| `i2c_available`    | I2C bus free for next operation    | I2C-dependent plugins       |
 
 ---
 
