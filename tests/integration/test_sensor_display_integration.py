@@ -24,12 +24,13 @@ from tests.fixtures.hardware_mocks import (
 )
 from tests.fixtures.test_data import I2CSensorConfigFactory, PluginConfigFactory
 
+# Cache handler utilities
+from brewmotron_cache_handler import reset_cache_handler
+
 # Mark all tests in this module as integration tests
-# PHASE 2: Temporarily skipped during cache handler conversion
-# These plugin integration tests will be re-enabled after plugins are refactored to use cache handler
+# Phase 8: Re-enabled after Phase 7 plugin migration to cache handler
 pytestmark = [
     pytest.mark.integration,
-    pytest.mark.skip(reason="Phase 2: Plugin refactoring - re-enable after cache handler integration"),
 ]
 
 
@@ -57,6 +58,13 @@ class MockI2CTempSensor(MockCBPiSensorBase):
 
 class Mock7SegDisplay:
     """Mock implementation of 7SegDisplay for integration testing."""
+
+    @pytest_asyncio.fixture(autouse=True)
+    async def reset_cache_between_tests(self):
+        """Reset cache handler singleton between tests for isolation."""
+        await reset_cache_handler()
+        yield
+        await reset_cache_handler()
 
     def __init__(self, cbpi):
         self.cbpi = cbpi
