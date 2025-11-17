@@ -15,6 +15,9 @@ from cbpi.api.config import ConfigType
 # 7Seg Required
 from smbus import SMBus
 
+# Brewmotron Cache Handler
+from brewmotron_cache_handler import get_cache_handler
+
 # from RPLCD.i2c import CharLCD
 
 
@@ -124,6 +127,10 @@ class SSDisplay(CBPiExtension):
                     print(e)
 
         logger.info("Seven Segment Display - Info: Starting background task")
+
+        # Initialize cache handler (shared across all brewmotron plugins)
+        self.cache = await get_cache_handler(cbpi_instance=self.cbpi)
+        logger.info("Seven Segment Display - Cache handler initialized")
 
         # Globals setup
         refresh = await self.set_display_refresh()
@@ -427,7 +434,7 @@ class SSDisplay(CBPiExtension):
     async def get_active_step_values(self):
         noactivestep = ["no active step", "---", None]
         try:
-            step_json_obj = self.cbpi.step.get_state()
+            step_json_obj = await self.cache.get_step_state()
             steps = step_json_obj["steps"]
             last_active_step_target_kettle = None
 
@@ -467,7 +474,7 @@ class SSDisplay(CBPiExtension):
 
     async def get_kettle_values(self, kettle_id):
         try:
-            kettle_json_obj = self.cbpi.kettle.get_state()
+            kettle_json_obj = await self.cache.get_kettle_state()
             kettles = kettle_json_obj["data"]
             # if DEBUG: logger.info("kettles %s" % kettles)
             i = 0
@@ -507,7 +514,7 @@ class SSDisplay(CBPiExtension):
 
     async def get_sensor_values_by_id(self, sensor_id):
         try:
-            sensor_json_obj = self.cbpi.sensor.get_state()
+            sensor_json_obj = await self.cache.get_sensor_state()
             sensors = sensor_json_obj["data"]
             if DEBUG:
                 logger.info("sensors %s" % sensors)
@@ -546,7 +553,7 @@ class SSDisplay(CBPiExtension):
 
     async def get_kettle_gpio(self, actor_id):
         try:
-            actor_json_obj = self.cbpi.actor.get_state()
+            actor_json_obj = await self.cache.get_actor_state()
             actors = actor_json_obj["data"]
 
             # if DEBUG: logger.info("kettles %s" % kettles)
@@ -565,7 +572,7 @@ class SSDisplay(CBPiExtension):
 
     async def get_actor_gpio(self, actor_id):
         try:
-            actor_json_obj = self.cbpi.actor.get_state()
+            actor_json_obj = await self.cache.get_actor_state()
             actors = actor_json_obj["data"]
             # if DEBUG: logger.info("kettles %s" % kettles)
             i = 0

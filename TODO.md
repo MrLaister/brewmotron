@@ -57,22 +57,23 @@ This file tracks planned enhancements and future work for the brewmotron cache h
 
 ## Phase 7: Plugin Migration
 
-- [ ] **Migrate 7SegDisplay Plugin**
-  - Replace direct cbpi4 API calls with cache handler
-  - Use singleton pattern: `cache = await get_cache_handler(cbpi_instance=cbpi)`
-  - Continue polling with cache (cache handles TTL automatically)
-  - Use I2C coordinator for display updates
+- [x] **Migrate 7SegDisplay Plugin**
+  - ✅ Replaced direct cbpi4 API calls with cache handler
+  - ✅ Added singleton pattern: `cache = await get_cache_handler(cbpi_instance=cbpi)`
+  - ✅ Continues polling with cache (cache handles TTL automatically)
+  - ✅ Migrated: get_step_state(), get_kettle_state(), get_sensor_state(), get_actor_state()
 
-- [ ] **Migrate LCDisplay Plugin**
-  - Replace direct cbpi4 API calls with cache handler
-  - Use singleton pattern: `cache = await get_cache_handler()`
-  - Continue polling with cache (cache handles TTL automatically)
-  - Use I2C coordinator for display updates
+- [x] **Migrate LCDisplay Plugin**
+  - ✅ Replaced direct cbpi4 API calls with cache handler
+  - ✅ Added singleton pattern: `cache = await get_cache_handler(cbpi_instance=cbpi)`
+  - ✅ Continues polling with cache (cache handles TTL automatically)
+  - ✅ Migrated: get_step_state(), get_kettle_state(), get_sensor_state()
 
-- [ ] **Migrate BMT-Key Plugin**
-  - Replace direct cbpi4 API calls with cache handler
-  - Use singleton pattern: `cache = await get_cache_handler()`
-  - Continue polling with cache (cache handles TTL automatically)
+- [x] **Migrate BMT-Key Plugin**
+  - ✅ Replaced direct cbpi4 API calls with cache handler
+  - ✅ Added singleton pattern: `cache = await get_cache_handler(cbpi_instance=cbpi)`
+  - ✅ Continues polling with cache (cache handles TTL automatically)
+  - ✅ Migrated: get_actor_state(), made loadActorValues() async
 
 ## Documentation & Guides
 

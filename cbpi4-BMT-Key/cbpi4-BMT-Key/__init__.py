@@ -10,6 +10,9 @@ from cbpi.api import *
 from cbpi.api.actor import CBPiActor
 from cbpi.api.config import ConfigType
 
+# Brewmotron Cache Handler
+from brewmotron_cache_handler import get_cache_handler
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -59,13 +62,17 @@ class BMTKey(CBPiExtension):
             print(e)
 
     async def run(self):
+        # Initialize cache handler (shared across all brewmotron plugins)
+        self.cache = await get_cache_handler(cbpi_instance=self.cbpi)
+        logger.info("BMT-Key - Cache handler initialized")
+
         while True:
             await self.check_state()
             await asyncio.sleep(1)
 
     async def disableHPActors(self):
         print("Disabling OneAtATime Actors")
-        self.loadActorValues("OneAtATimeActor")
+        await self.loadActorValues("OneAtATimeActor")
         for actor in self.actors:
             await self.cbpi.actor.off(actor)
             if self.cbpi.actor.find_by_id(actor).instance.running == True:
@@ -73,7 +80,7 @@ class BMTKey(CBPiExtension):
 
     async def enableHPActors(self):
         print("Enabling OneAtATime Actors")
-        self.loadActorValues("OneAtATimeActor")
+        await self.loadActorValues("OneAtATimeActor")
         for actor in self.actors:
             if self.cbpi.actor.find_by_id(actor).instance.running == False:
                 await self.cbpi.actor.start(actor)
@@ -140,9 +147,9 @@ class BMTKey(CBPiExtension):
                 logger.warning(e)
         return mode_actorID
 
-    def loadActorValues(self, actorPluginType):
+    async def loadActorValues(self, actorPluginType):
         try:
-            actor_json_obj = self.cbpi.actor.get_state()
+            actor_json_obj = await self.cache.get_actor_state()
             actors = actor_json_obj["data"]
             logger.info("Started looking for saved OneAtATime actors")
             self.actors = []
