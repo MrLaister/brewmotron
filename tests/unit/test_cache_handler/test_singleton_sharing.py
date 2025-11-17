@@ -14,8 +14,8 @@ import pytest
 import pytest_asyncio
 
 from brewmotron_cache_handler import (
-    CBPI4CacheHandler,
     CacheType,
+    CBPI4CacheHandler,
     get_cache_handler,
     get_cache_handler_sync,
     reset_cache_handler,

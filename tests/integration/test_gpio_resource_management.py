@@ -13,13 +13,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 import pytest_asyncio
 
+# Cache handler utilities
+from brewmotron_cache_handler import reset_cache_handler
+
 # Import test fixtures
 from tests.fixtures.cbpi_mock import MockCBPi, MockCBPiActorBase, PluginTestHarness
 from tests.fixtures.hardware_mocks import HardwareTestHarness, MockRPiGPIO
 from tests.fixtures.test_data import GPIOActorConfigFactory, PluginConfigFactory
-
-# Cache handler utilities
-from brewmotron_cache_handler import reset_cache_handler
 
 # Mark all tests in this module as integration tests
 # Phase 8: Re-enabled after Phase 7 plugin migration to cache handler
