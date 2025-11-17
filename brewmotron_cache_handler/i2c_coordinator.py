@@ -91,15 +91,31 @@ class I2CCoordinator:
         self._processor_task = asyncio.create_task(self._process_queue())
         logger.info("I2C coordinator started")
 
-    async def stop(self) -> None:
-        """Stop the background queue processor and wait for completion."""
+    async def stop(self, timeout: float = 2.0) -> None:
+        """Stop the background queue processor and wait for completion.
+
+        Args:
+            timeout: Maximum time to wait for graceful shutdown (default: 2.0s)
+        """
         if not self._running:
             return
 
         self._running = False
-        if self._processor_task:
-            await self._processor_task
-            self._processor_task = None
+
+        if self._processor_task and not self._processor_task.done():
+            try:
+                # Try graceful shutdown first
+                await asyncio.wait_for(self._processor_task, timeout=timeout)
+            except asyncio.TimeoutError:
+                logger.warning(f"Coordinator stop timeout after {timeout}s - forcing cancellation")
+                self._processor_task.cancel()
+                try:
+                    await self._processor_task
+                except asyncio.CancelledError:
+                    logger.info("Coordinator task cancelled successfully")
+            finally:
+                self._processor_task = None
+
         logger.info("I2C coordinator stopped")
 
     async def enqueue_write(
@@ -224,12 +240,19 @@ class I2CCoordinator:
                     # Perform the actual I2C operation
                     result = await self._perform_i2c_operation(operation)
 
-                    # Call callback if provided
+                    # Call callback if provided (with timeout protection)
                     if operation.callback:
-                        if asyncio.iscoroutinefunction(operation.callback):
-                            await operation.callback(result)
-                        else:
-                            operation.callback(result)
+                        try:
+                            if asyncio.iscoroutinefunction(operation.callback):
+                                # Protect against hanging async callbacks
+                                await asyncio.wait_for(operation.callback(result), timeout=1.0)
+                            else:
+                                # Sync callbacks should complete quickly
+                                operation.callback(result)
+                        except asyncio.TimeoutError:
+                            logger.error(f"Callback timeout for operation on address 0x{operation.address:02X}")
+                        except Exception as e:
+                            logger.error(f"Callback error for operation on address 0x{operation.address:02X}: {e}")
 
                     self._stats["operations_completed"] += 1
                     logger.debug(f"Completed {operation.operation_type} for address 0x{operation.address:02X}")

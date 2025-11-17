@@ -175,6 +175,7 @@ class TestSingletonCacheSharing:
     @pytest.mark.asyncio
     async def test_plugin_initialization_race_condition(self, mock_cbpi):
         """Test that concurrent plugin initialization creates only one cache."""
+
         # Simulate multiple plugins initializing simultaneously
         async def init_plugin():
             return await get_cache_handler(cbpi_instance=mock_cbpi)

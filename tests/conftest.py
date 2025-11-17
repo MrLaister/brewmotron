@@ -481,3 +481,56 @@ def mock_temperature_sensor():
     sensor_mock.read_temperature = read_temperature
 
     return sensor_mock
+
+
+# =============================================================================
+# I2C Coordinator and Cache Handler Fixtures with Guaranteed Cleanup
+# =============================================================================
+
+
+@pytest.fixture
+async def i2c_coordinator():
+    """
+    Provide I2C coordinator with guaranteed cleanup and timeout protection.
+
+    This fixture ensures that the I2C coordinator is properly stopped even if
+    tests fail or hang, preventing background task leaks.
+    """
+    from brewmotron_cache_handler.i2c_coordinator import I2CCoordinator
+
+    coordinator = I2CCoordinator()
+    yield coordinator
+
+    # Guaranteed cleanup with timeout and cancellation
+    if coordinator._running:
+        try:
+            await asyncio.wait_for(coordinator.stop(), timeout=2.0)
+        except asyncio.TimeoutError:
+            logging.warning("Coordinator stop timeout - forcing cancellation")
+            if coordinator._processor_task and not coordinator._processor_task.done():
+                coordinator._processor_task.cancel()
+                try:
+                    await coordinator._processor_task
+                except asyncio.CancelledError:
+                    pass
+
+
+@pytest.fixture
+async def cache_handler():
+    """
+    Provide cache handler with guaranteed cleanup and timeout protection.
+
+    This fixture ensures that the cache handler (and its internal I2C coordinator)
+    is properly stopped even if tests fail or hang.
+    """
+    from brewmotron_cache_handler import CBPI4CacheHandler
+
+    handler = CBPI4CacheHandler()
+    yield handler
+
+    # Guaranteed cleanup
+    if handler._running:
+        try:
+            await asyncio.wait_for(handler.stop(), timeout=2.0)
+        except asyncio.TimeoutError:
+            logging.warning("Cache handler stop timeout")

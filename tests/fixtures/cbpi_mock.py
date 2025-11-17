@@ -590,7 +590,7 @@ class MockProperty:
 class MockCacheHandler:
     """Mock cache handler for testing plugins after Phase 7 migration."""
 
-    def __init__(self, cbpi_instance: Optional['MockCBPi'] = None):
+    def __init__(self, cbpi_instance: Optional["MockCBPi"] = None):
         """
         Initialize mock cache handler.
 
@@ -659,21 +659,25 @@ class MockCacheHandler:
 
     async def _i2c_write(self, address: int, data: bytes, priority: int = 5):
         """Mock I2C write operation."""
-        self.i2c_operations.append({
-            "type": "write",
-            "address": address,
-            "data": data,
-            "priority": priority,
-        })
+        self.i2c_operations.append(
+            {
+                "type": "write",
+                "address": address,
+                "data": data,
+                "priority": priority,
+            }
+        )
 
     async def _i2c_read(self, address: int, num_bytes: int, priority: int = 5):
         """Mock I2C read operation."""
-        self.i2c_operations.append({
-            "type": "read",
-            "address": address,
-            "num_bytes": num_bytes,
-            "priority": priority,
-        })
+        self.i2c_operations.append(
+            {
+                "type": "read",
+                "address": address,
+                "num_bytes": num_bytes,
+                "priority": priority,
+            }
+        )
         return bytes(num_bytes)
 
     async def start(self):
