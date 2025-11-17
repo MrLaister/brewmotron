@@ -14,7 +14,7 @@ import pytest
 import pytest_asyncio
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
+from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness, create_mock_cache_handler
 from tests.fixtures.hardware_mocks import HardwareTestHarness, MockSMBus, MockTemperatureSensor
 from tests.fixtures.test_data import PluginConfigFactory
 
@@ -37,6 +37,11 @@ class TestI2CTempSensor:
         harness = PluginTestHarness()
         yield harness
         await harness.cleanup()
+
+    @pytest.fixture
+    def mock_cache_handler(self, plugin_harness):
+        """Create a mock cache handler for plugin testing."""
+        return create_mock_cache_handler(cbpi_instance=plugin_harness.cbpi)
 
     @pytest.fixture
     def mock_i2c(self):

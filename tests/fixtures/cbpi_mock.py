@@ -583,6 +583,109 @@ class MockProperty:
 
 
 # =============================================================================
+# Cache Handler Mock
+# =============================================================================
+
+
+class MockCacheHandler:
+    """Mock cache handler for testing plugins after Phase 7 migration."""
+
+    def __init__(self, cbpi_instance: Optional['MockCBPi'] = None):
+        """
+        Initialize mock cache handler.
+
+        Args:
+            cbpi_instance: Optional mock CBPI instance to pull data from
+        """
+        self.cbpi_instance = cbpi_instance
+        self.started = False
+
+        # Cache state tracking
+        self.cache_stats = {
+            "step": {"hits": 0, "misses": 0},
+            "kettle": {"hits": 0, "misses": 0},
+            "sensor": {"hits": 0, "misses": 0},
+            "actor": {"hits": 0, "misses": 0},
+        }
+
+        # I2C operation tracking
+        self.i2c_operations = []
+
+        # Setup async mocks
+        self.get_step_state = AsyncMock(side_effect=self._get_step_state)
+        self.get_kettle_state = AsyncMock(side_effect=self._get_kettle_state)
+        self.get_sensor_state = AsyncMock(side_effect=self._get_sensor_state)
+        self.get_actor_state = AsyncMock(side_effect=self._get_actor_state)
+        self.get_config = AsyncMock(side_effect=self._get_config)
+        self.i2c_write = AsyncMock(side_effect=self._i2c_write)
+        self.i2c_read = AsyncMock(side_effect=self._i2c_read)
+        self.invalidate_cache = AsyncMock()
+        self.invalidate_all_caches = AsyncMock()
+        self.get_cache_stats = MagicMock(return_value=self.cache_stats)
+
+    async def _get_step_state(self):
+        """Mock get_step_state implementation."""
+        self.cache_stats["step"]["hits"] += 1
+        if self.cbpi_instance:
+            return self.cbpi_instance.step.get_state()
+        return {"steps": []}
+
+    async def _get_kettle_state(self):
+        """Mock get_kettle_state implementation."""
+        self.cache_stats["kettle"]["hits"] += 1
+        if self.cbpi_instance:
+            return self.cbpi_instance.kettle.get_state()
+        return {"data": []}
+
+    async def _get_sensor_state(self):
+        """Mock get_sensor_state implementation."""
+        self.cache_stats["sensor"]["hits"] += 1
+        if self.cbpi_instance:
+            return self.cbpi_instance.sensor.get_state()
+        return {"data": []}
+
+    async def _get_actor_state(self):
+        """Mock get_actor_state implementation."""
+        self.cache_stats["actor"]["hits"] += 1
+        if self.cbpi_instance:
+            return self.cbpi_instance.actor.get_state()
+        return {"data": []}
+
+    async def _get_config(self):
+        """Mock get_config implementation."""
+        if self.cbpi_instance:
+            return self.cbpi_instance.config._config_data
+        return {}
+
+    async def _i2c_write(self, address: int, data: bytes, priority: int = 5):
+        """Mock I2C write operation."""
+        self.i2c_operations.append({
+            "type": "write",
+            "address": address,
+            "data": data,
+            "priority": priority,
+        })
+
+    async def _i2c_read(self, address: int, num_bytes: int, priority: int = 5):
+        """Mock I2C read operation."""
+        self.i2c_operations.append({
+            "type": "read",
+            "address": address,
+            "num_bytes": num_bytes,
+            "priority": priority,
+        })
+        return bytes(num_bytes)
+
+    async def start(self):
+        """Start the cache handler."""
+        self.started = True
+
+    async def stop(self):
+        """Stop the cache handler."""
+        self.started = False
+
+
+# =============================================================================
 # Factory Functions
 # =============================================================================
 
@@ -590,6 +693,11 @@ class MockProperty:
 def create_mock_cbpi() -> MockCBPi:
     """Factory function to create a configured CBPI mock."""
     return MockCBPi()
+
+
+def create_mock_cache_handler(cbpi_instance: Optional[MockCBPi] = None) -> MockCacheHandler:
+    """Factory function to create a mock cache handler."""
+    return MockCacheHandler(cbpi_instance=cbpi_instance)
 
 
 def create_plugin_test_harness() -> PluginTestHarness:

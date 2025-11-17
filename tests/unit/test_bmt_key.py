@@ -13,16 +13,14 @@ import pytest
 import pytest_asyncio
 
 # Import test fixtures
-from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness
+from tests.fixtures.cbpi_mock import MockCBPi, PluginTestHarness, create_mock_cache_handler
 from tests.fixtures.hardware_mocks import HardwareTestHarness, MockRPiGPIO
 from tests.fixtures.test_data import ExtensionConfigFactory, PluginConfigFactory
 
 # Mark all tests in this module as hardware tests
-# PHASE 2: Temporarily skipped during cache handler conversion
-# These plugin tests will be re-enabled after plugins are refactored to use cache handler
+# Phase 8: Re-enabled after Phase 7 plugin migration to cache handler
 pytestmark = [
     pytest.mark.hardware,
-    pytest.mark.skip(reason="Phase 2: Plugin refactoring - re-enable after cache handler integration"),
 ]
 
 
@@ -35,6 +33,11 @@ class TestBMTKey:
         harness = PluginTestHarness()
         yield harness
         await harness.cleanup()
+
+    @pytest.fixture
+    def mock_cache_handler(self, plugin_harness):
+        """Create a mock cache handler for plugin testing."""
+        return create_mock_cache_handler(cbpi_instance=plugin_harness.cbpi)
 
     @pytest.fixture
     def hardware_harness(self):
