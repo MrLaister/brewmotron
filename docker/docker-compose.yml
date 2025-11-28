@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  brewmotron-manual-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.manual-test
+      args:
+        # Override these to build from different branch/repo
+        GITHUB_REPO: https://github.com/MrLaister/brewmotron.git
+        BRANCH_NAME: ${BRANCH_NAME:-main}  # Use env var or default to 'main'
+    image: brewmotron-manual-test:latest
+    container_name: brewmotron-cbpi4
+    ports:
+      - "8000:8000"  # CraftBeerPi4 web interface
+    volumes:
+      # Mount config directory for persistence
+      - cbpi-config:/cbpi_config
+      # Optional: mount source for live plugin development
+      # - .:/brewmotron:ro
+    environment:
+      # Set to "true" to install plugins on startup
+      - INSTALL_PLUGINS=true
+      - CBPI_CONFIG_FOLDER=/cbpi_config
+    stdin_open: true    # Keep stdin open (docker run -i)
+    tty: true           # Allocate pseudo-TTY (docker run -t)
+    restart: unless-stopped
+
+volumes:
+  cbpi-config:
+    driver: local
