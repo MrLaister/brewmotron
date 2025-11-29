@@ -270,11 +270,20 @@ The testing infrastructure includes GitHub Actions workflow (`.github/workflows/
 1. **Code Quality Checks** - Black, isort, flake8, mypy
 2. **Unit Tests** - Fast tests with coverage reporting
 3. **Integration Tests** - Framework integration testing
-4. **Hardware Tests** - Hardware simulation validation  
+4. **Hardware Tests** - Hardware simulation validation
 5. **Security Scanning** - Safety and Bandit checks
 6. **Build Testing** - Package build validation
 
 Tests run on multiple Python versions (3.9, 3.10, 3.11) and Ubuntu versions.
+
+## Local Docker Test Environments
+
+For local development, Docker test environments are available (maintained separately from this repository):
+
+- **Ubuntu 22.04 (AMD64)**: Fast native execution, matches GitHub Actions CI/CD environment
+- **Debian Bullseye (ARM64)**: Raspberry Pi OS validation via QEMU emulation, includes RPi-specific libraries (RPi.GPIO, smbus2, i2c-tools)
+
+The ARM64 Raspbian environment enables pre-deployment validation on AMD64 development machines without requiring physical Raspberry Pi hardware.
 
 ## Performance Testing
 
