@@ -70,19 +70,45 @@ def get_plugin_path(plugin_name: str) -> Path:
 
     Example:
         >>> path = get_plugin_path("7SegDisplay")
-        >>> # Returns: /path/to/cbpi4-7SegDisplay/cbpi4-7SegDisplay
+        >>> # Returns: /path/to/cbpi4_7seg_display
     """
     repo_root = Path(__file__).parent.parent.parent
-    plugin_dir = repo_root / f"cbpi4-{plugin_name}"
-    source_dir = plugin_dir / f"cbpi4-{plugin_name}"
 
-    if not source_dir.exists():
+    # Convert CamelCase plugin name to underscore format
+    # 7SegDisplay -> 7seg_display
+    # GPIOInput -> gpio_input
+    plugin_dir_name = plugin_name.replace("Seg", "seg_")
+    plugin_dir_name = plugin_dir_name.replace("GPIO", "gpio_")
+    plugin_dir_name = plugin_dir_name.replace("BMT-", "bmt_")
+    plugin_dir_name = plugin_dir_name.replace("LCD", "lcd_")
+    plugin_dir_name = plugin_dir_name.replace("NOR", "nor")
+    plugin_dir_name = plugin_dir_name.replace("i2c", "i2c_")
+    plugin_dir_name = plugin_dir_name.replace("Internet", "internet_")
+    plugin_dir_name = plugin_dir_name.replace("Connected", "connected_")
+    plugin_dir_name = plugin_dir_name.replace("One", "one_")
+    plugin_dir_name = plugin_dir_name.replace("At", "at_")
+    plugin_dir_name = plugin_dir_name.replace("A", "a_")
+    plugin_dir_name = plugin_dir_name.replace("Time", "time")
+    plugin_dir_name = plugin_dir_name.replace("Always", "always_")
+    plugin_dir_name = plugin_dir_name.replace("ON", "on_")
+    plugin_dir_name = plugin_dir_name.replace("Key", "key")
+    plugin_dir_name = plugin_dir_name.replace("Momentary", "momentary_")
+    plugin_dir_name = plugin_dir_name.replace("Buttons", "buttons")
+    plugin_dir_name = plugin_dir_name.replace("Temp", "temp_")
+    plugin_dir_name = plugin_dir_name.replace("Sensor", "sensor")
+    plugin_dir_name = plugin_dir_name.replace("Display", "display")
+    plugin_dir_name = plugin_dir_name.replace("Input", "input")
+    plugin_dir_name = plugin_dir_name.lower()
+
+    plugin_dir = repo_root / f"cbpi4_{plugin_dir_name}"
+
+    if not plugin_dir.exists():
         raise FileNotFoundError(
-            f"Plugin source not found: {source_dir}\n"
-            f"Expected structure: cbpi4-{plugin_name}/cbpi4-{plugin_name}/__init__.py"
+            f"Plugin source not found: {plugin_dir}\n"
+            f"Expected structure: cbpi4_{plugin_dir_name}/__init__.py"
         )
 
-    return source_dir
+    return plugin_dir
 
 
 def add_plugin_to_path(plugin_name: str) -> None:
@@ -300,11 +326,12 @@ def plugin_loader():
         # Add plugin to path
         add_plugin_to_path(plugin_name)
 
-        # Import the module - needs to import the nested module
-        module_name = f"cbpi4-{plugin_name}.cbpi4-{plugin_name}"
+        # Get the plugin directory path to derive the module name
+        plugin_dir = get_plugin_path(plugin_name)
+        module_name = plugin_dir.name  # e.g., "cbpi4_7seg_display"
 
         try:
-            # Import the nested module where the class actually lives
+            # Import the module where the class lives
             module = importlib.import_module(module_name)
             return getattr(module, class_name)
         except (ImportError, AttributeError) as e:

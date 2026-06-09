@@ -19,16 +19,16 @@ from pytest import FixtureRequest
 # Add plugin directories to Python path for testing
 PROJECT_ROOT = Path(__file__).parent.parent
 PLUGIN_DIRS = [
-    PROJECT_ROOT / "cbpi4-7SegDisplay",
-    PROJECT_ROOT / "cbpi4-LCDisplay",
-    PROJECT_ROOT / "cbpi4-i2cTempSensor",
-    PROJECT_ROOT / "cbpi4-GPIOInput",
-    PROJECT_ROOT / "cbpi4-AlwaysONGPIO",
-    PROJECT_ROOT / "cbpi4-BMT-Key",
-    PROJECT_ROOT / "cbpi4-BMT-MomentaryButtons",
-    PROJECT_ROOT / "cbpi4-InternetConnectedGPIO",
-    PROJECT_ROOT / "cbpi4-OneAtATime",
-    PROJECT_ROOT / "cbpi4-NOR3",
+    PROJECT_ROOT / "cbpi4_7seg_display",
+    PROJECT_ROOT / "cbpi4_lcd_display",
+    PROJECT_ROOT / "cbpi4_i2c_temp_sensor",
+    PROJECT_ROOT / "cbpi4_gpio_input",
+    PROJECT_ROOT / "cbpi4_always_on_gpio",
+    PROJECT_ROOT / "cbpi4_bmt_key",
+    PROJECT_ROOT / "cbpi4_bmt_momentary_buttons",
+    PROJECT_ROOT / "cbpi4_internet_connected_gpio",
+    PROJECT_ROOT / "cbpi4_one_at_a_time",
+    PROJECT_ROOT / "cbpi4_nor3",
 ]
 
 for plugin_dir in PLUGIN_DIRS:
