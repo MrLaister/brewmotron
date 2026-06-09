@@ -1,8 +1,12 @@
 """
-Real plugin tests for cbpi4-GPIOInput.
+Real plugin tests for cbpi4_gpio_input.
 
 Tests the ACTUAL GPIOInput actor plugin with mocked hardware.
-This demonstrates testing an Actor plugin (vs Extension or Sensor).
+
+GPIOInput is an INPUT plugin: it reads a GPIO pin (configured as input)
+and mirrors the pin level to its own state and an optional LinkedActor.
+It never drives GPIO outputs itself - on()/off() only update internal
+state and the linked actor.
 """
 
 import asyncio
@@ -50,189 +54,168 @@ class TestRealGPIOInput:
         assert actor.props["GPIO"] == "18"
 
     @pytest.mark.asyncio
-    async def test_actor_on_normal_logic(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
+    async def test_input_high_turns_state_on(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
         """
-        Test turning actor ON with normal (non-inverted) logic.
+        Test that a HIGH input level turns the actor state ON (normal logic).
 
-        Expected:
-        - GPIO configured as OUTPUT
-        - GPIO set to HIGH when actor.on() is called
-        - Actor state reflects ON
+        GPIOInput configures its pin as an input and mirrors the pin level
+        into its state when get_state() polls the pin.
         """
         props = {"GPIO": "18", "Inverted": "No"}
 
         actor = await plugin_harness.load_plugin(real_gpio_input_class, "test_on_normal", props)
 
-        # Turn actor ON
-        await actor.on()
+        # Pin is configured as input, defaults LOW -> state off
+        assert mock_rpi_gpio._pin_modes.get(18) == mock_rpi_gpio.IN
+        assert actor.state is False
+
+        # Drive the input HIGH and poll
+        mock_rpi_gpio.simulate_input_change(18, mock_rpi_gpio.HIGH)
+        assert actor.get_state() is True
         await asyncio.sleep(0.05)
-
-        # Verify GPIO is HIGH
-        assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH
-
-        # Verify actor reports it's ON
-        assert actor.state is True or await actor.get_state() is True
+        assert actor.state is True
 
     @pytest.mark.asyncio
-    async def test_actor_off_normal_logic(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
+    async def test_input_low_turns_state_off(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
         """
-        Test turning actor OFF with normal logic.
-
-        Expected:
-        - GPIO set to LOW when actor.off() is called
-        - Actor state reflects OFF
+        Test that the state follows the input back to OFF (normal logic).
         """
         props = {"GPIO": "18", "Inverted": "No"}
 
         actor = await plugin_harness.load_plugin(real_gpio_input_class, "test_off_normal", props)
 
-        # Turn ON then OFF
-        await actor.on()
-        await asyncio.sleep(0.05)
-        assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH
-
-        await actor.off()
+        # HIGH -> ON
+        mock_rpi_gpio.simulate_input_change(18, mock_rpi_gpio.HIGH)
+        assert actor.get_state() is True
         await asyncio.sleep(0.05)
 
-        # Verify GPIO is LOW
-        assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.LOW
-
-        # Verify actor reports it's OFF
-        assert actor.state is False or await actor.get_state() is False
+        # LOW -> OFF
+        mock_rpi_gpio.simulate_input_change(18, mock_rpi_gpio.LOW)
+        assert actor.get_state() is False
+        await asyncio.sleep(0.05)
+        assert actor.state is False
 
     @pytest.mark.asyncio
     async def test_actor_inverted_logic(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
         """
-        Test actor with inverted logic (for active-low relays).
+        Test input with inverted logic (active-low input).
 
-        Expected:
-        - When actor is ON, GPIO is LOW (inverted)
-        - When actor is OFF, GPIO is HIGH (inverted)
+        With Inverted=Yes a LOW pin level means ON and HIGH means OFF.
+        Note: the pin defaults LOW, so the actor turns ON during on_start.
         """
         props = {"GPIO": "19", "Inverted": "Yes"}
 
         actor = await plugin_harness.load_plugin(real_gpio_input_class, "test_inverted", props)
-
-        # Turn ON - should set GPIO LOW
-        await actor.on()
         await asyncio.sleep(0.05)
-        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.LOW
 
-        # Turn OFF - should set GPIO HIGH
-        await actor.off()
+        # Pin defaults LOW -> inverted ON
+        assert actor.get_state() is True
         await asyncio.sleep(0.05)
-        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.HIGH
+
+        # Drive HIGH -> inverted OFF
+        mock_rpi_gpio.simulate_input_change(19, mock_rpi_gpio.HIGH)
+        assert actor.get_state() is False
+        await asyncio.sleep(0.05)
+        assert actor.state is False
 
     @pytest.mark.asyncio
     async def test_actor_power_levels(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
         """
-        Test actor with power level control.
+        Test that on() handles a power argument gracefully.
 
-        GPIO actors typically don't support power levels (it's ON or OFF),
-        but the actor should handle power parameter gracefully.
+        GPIOInput ignores power levels (it mirrors a digital input), but
+        on(power=...) must not raise.
         """
         props = {"GPIO": "20", "Inverted": "No"}
 
         actor = await plugin_harness.load_plugin(real_gpio_input_class, "test_power", props)
 
-        # Try turning on with power level
         await actor.on(power=75)
         await asyncio.sleep(0.05)
 
-        # GPIO should be ON (power levels ignored for simple GPIO)
-        assert mock_rpi_gpio._pin_states.get(20) == mock_rpi_gpio.HIGH
-
-        # Actor should report as ON
-        assert actor.state is True or await actor.get_state() is True
+        # State is ON; the input pin itself is not driven by the actor
+        assert actor.state is True
+        assert mock_rpi_gpio._pin_modes.get(20) == mock_rpi_gpio.IN
 
     @pytest.mark.asyncio
     async def test_multiple_actors_coordination(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
         """
-        Test multiple GPIO actors controlling different pins.
+        Test multiple GPIOInput actors reading different pins.
 
-        This simulates a real brewing scenario with multiple actors:
-        - Mash heater on GPIO 18
-        - Boil heater on GPIO 19
-        - Pump on GPIO 20
+        Simulates several physical switches (e.g. panel toggles) feeding
+        independent inputs.
         """
-        # Create three actors
-        mash_heater = await plugin_harness.load_plugin(real_gpio_input_class, "mash_heater", {"GPIO": "18", "Inverted": "No"})
+        mash_switch = await plugin_harness.load_plugin(real_gpio_input_class, "mash_switch", {"GPIO": "18", "Inverted": "No"})
 
-        boil_heater = await plugin_harness.load_plugin(real_gpio_input_class, "boil_heater", {"GPIO": "19", "Inverted": "No"})
+        boil_switch = await plugin_harness.load_plugin(real_gpio_input_class, "boil_switch", {"GPIO": "19", "Inverted": "No"})
 
-        pump = await plugin_harness.load_plugin(real_gpio_input_class, "pump", {"GPIO": "20", "Inverted": "No"})
+        pump_switch = await plugin_harness.load_plugin(real_gpio_input_class, "pump_switch", {"GPIO": "20", "Inverted": "No"})
 
-        # Turn on mash heater and pump
-        await mash_heater.on()
-        await pump.on()
+        # Flip mash and pump switches on
+        mock_rpi_gpio.simulate_input_change(18, mock_rpi_gpio.HIGH)
+        mock_rpi_gpio.simulate_input_change(20, mock_rpi_gpio.HIGH)
+
+        assert mash_switch.get_state() is True
+        assert boil_switch.get_state() is False
+        assert pump_switch.get_state() is True
         await asyncio.sleep(0.05)
-
-        # Verify correct GPIO states
-        assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH  # Mash ON
-        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.LOW  # Boil OFF
-        assert mock_rpi_gpio._pin_states.get(20) == mock_rpi_gpio.HIGH  # Pump ON
 
         # Switch to boil phase
-        await mash_heater.off()
-        await boil_heater.on()
+        mock_rpi_gpio.simulate_input_change(18, mock_rpi_gpio.LOW)
+        mock_rpi_gpio.simulate_input_change(19, mock_rpi_gpio.HIGH)
+
+        assert mash_switch.get_state() is False
+        assert boil_switch.get_state() is True
+        assert pump_switch.get_state() is True
         await asyncio.sleep(0.05)
 
-        assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.LOW  # Mash OFF
-        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.HIGH  # Boil ON
-        assert mock_rpi_gpio._pin_states.get(20) == mock_rpi_gpio.HIGH  # Pump still ON
-
     @pytest.mark.asyncio
-    async def test_cbpi_integration(self, plugin_harness, real_gpio_input_class):
+    async def test_cbpi_integration(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
         """
-        Test that actor integrates with cbpi actor system.
+        Test that input changes are mirrored to the LinkedActor.
 
-        Verifies:
-        - Actor can be retrieved via cbpi.actor
-        - Actor state changes are reflected in cbpi system
+        GPIOInput's purpose is to drive another cbpi actor from a physical
+        input: when the pin goes HIGH the linked actor is turned on, and
+        when it goes LOW the linked actor is turned off.
         """
-        props = {"GPIO": "21", "Inverted": "No"}
+        props = {"GPIO": "21", "Inverted": "No", "LinkedActor": "linked_pump"}
 
         actor = await plugin_harness.load_plugin(real_gpio_input_class, "test_integration", props)
 
-        # Turn actor on
-        await actor.on()
+        # Input HIGH -> linked actor turned on
+        mock_rpi_gpio.simulate_input_change(21, mock_rpi_gpio.HIGH)
+        actor.get_state()
         await asyncio.sleep(0.05)
+        assert await plugin_harness.cbpi.actor.get_state("linked_pump") is True
 
-        # Verify cbpi knows about this actor
-        cbpi_actor_state = await plugin_harness.cbpi.actor.get_state("test_integration")
-        assert cbpi_actor_state is True
-
-        # Turn actor off
-        await actor.off()
+        # Input LOW -> linked actor turned off
+        mock_rpi_gpio.simulate_input_change(21, mock_rpi_gpio.LOW)
+        actor.get_state()
         await asyncio.sleep(0.05)
-
-        cbpi_actor_state = await plugin_harness.cbpi.actor.get_state("test_integration")
-        assert cbpi_actor_state is False
+        assert await plugin_harness.cbpi.actor.get_state("linked_pump") is False
 
     @pytest.mark.asyncio
     async def test_rapid_switching(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
         """
-        Test actor stability under rapid on/off switching.
+        Test stability when the input toggles rapidly.
 
-        This can happen during PID control or when testing.
-        Verifies no state corruption or GPIO issues.
+        Verifies state tracking does not corrupt under fast transitions.
         """
         props = {"GPIO": "22", "Inverted": "No"}
 
         actor = await plugin_harness.load_plugin(real_gpio_input_class, "test_rapid_switching", props)
 
-        # Rapidly switch 10 times
-        for i in range(10):
-            await actor.on()
+        for _ in range(10):
+            mock_rpi_gpio.simulate_input_change(22, mock_rpi_gpio.HIGH)
+            assert actor.get_state() is True
             await asyncio.sleep(0.01)
-            assert mock_rpi_gpio._pin_states.get(22) == mock_rpi_gpio.HIGH
 
-            await actor.off()
+            mock_rpi_gpio.simulate_input_change(22, mock_rpi_gpio.LOW)
+            assert actor.get_state() is False
             await asyncio.sleep(0.01)
-            assert mock_rpi_gpio._pin_states.get(22) == mock_rpi_gpio.LOW
 
         # Should end in stable OFF state
-        assert mock_rpi_gpio._pin_states.get(22) == mock_rpi_gpio.LOW
+        assert actor.state is False
 
 
 class TestRealGPIOInputEdgeCases:
@@ -270,19 +253,19 @@ class TestRealGPIOInputEdgeCases:
 
     @pytest.mark.asyncio
     async def test_missing_gpio_parameter(self, plugin_harness, real_gpio_input_class):
-        """Test actor behavior with missing required GPIO parameter."""
+        """
+        Test actor behavior with missing required GPIO parameter.
+
+        Documents actual behavior: GPIOInput passes the missing (None)
+        pin straight to GPIO.setup() during on_start, which raises.
+        """
         props = {
             "Inverted": "No",
             # GPIO missing!
         }
 
-        try:
-            actor = await plugin_harness.load_plugin(real_gpio_input_class, "test_missing_gpio", props)
-            # Document actual behavior
-            await actor.on()
-        except (KeyError, ValueError, AttributeError) as e:
-            # Plugin correctly rejects missing parameter
-            pass
+        with pytest.raises((TypeError, ValueError, RuntimeError)):
+            await plugin_harness.load_plugin(real_gpio_input_class, "test_missing_gpio", props)
 
     @pytest.mark.asyncio
     async def test_concurrent_on_off_calls(self, plugin_harness, real_gpio_input_class, mock_rpi_gpio):
@@ -306,5 +289,5 @@ class TestRealGPIOInputEdgeCases:
 
         await asyncio.sleep(0.1)
 
-        # Final state should be stable (last command was off)
-        assert mock_rpi_gpio._pin_states.get(23) in [mock_rpi_gpio.HIGH, mock_rpi_gpio.LOW]
+        # State must settle to a stable boolean without corruption
+        assert actor.state in (True, False)

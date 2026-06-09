@@ -94,6 +94,27 @@ class MockRPiGPIO:
 
         logger.debug("MockRPiGPIO initialized")
 
+    @property
+    def _pin_states(self) -> Dict[int, int]:
+        """Read-only view of pin output values, keyed by pin number."""
+        return {pin: state.value for pin, state in self._pins.items()}
+
+    @property
+    def _pin_modes(self) -> Dict[int, int]:
+        """Read-only view of pin modes (IN/OUT), keyed by pin number."""
+        return {pin: state.mode for pin, state in self._pins.items()}
+
+    @staticmethod
+    def _normalize_pins(pin: Union[int, str, List[Union[int, str]]]) -> List[int]:
+        """Coerce channel argument(s) to a list of ints.
+
+        cbpi4 plugin properties arrive as strings, so plugins may pass
+        "18" where real RPi.GPIO expects 18.
+        """
+        if isinstance(pin, (int, str)):
+            return [int(pin)]
+        return [int(p) for p in pin]
+
     def setmode(self, mode: int) -> None:
         """Set GPIO pin numbering mode."""
         if self._mode is not None and self._mode != mode:
@@ -114,23 +135,27 @@ class MockRPiGPIO:
         initial: int = LOW,
     ) -> None:
         """Setup GPIO pin(s)."""
-        pins = [pin] if isinstance(pin, int) else pin
+        pins = self._normalize_pins(pin)
 
         for p in pins:
             if p in self._pins:
                 logger.warning(f"Pin {p} already set up")
-
-            self._pins[p] = GPIOPinState(
-                mode=mode,
-                value=initial if mode == self.OUT else self.LOW,
-                pull_up_down=pull_up_down,
-            )
+                # Keep the existing line level: re-running setup() on real
+                # hardware does not change an externally driven signal
+                self._pins[p].mode = mode
+                self._pins[p].pull_up_down = pull_up_down
+            else:
+                self._pins[p] = GPIOPinState(
+                    mode=mode,
+                    value=initial if mode == self.OUT else self.LOW,
+                    pull_up_down=pull_up_down,
+                )
 
             logger.debug(f"Pin {p} setup: mode={mode}, pull_up_down={pull_up_down}, " f"initial={initial}")
 
     def output(self, pin: Union[int, List[int]], value: Union[int, List[int]]) -> None:
         """Set output value for pin(s)."""
-        pins = [pin] if isinstance(pin, int) else pin
+        pins = self._normalize_pins(pin)
         values = [value] if isinstance(value, int) else value
 
         if len(values) == 1 and len(pins) > 1:
@@ -155,8 +180,9 @@ class MockRPiGPIO:
 
             logger.debug(f"Pin {p} output set to {v}")
 
-    def input(self, pin: int) -> int:
+    def input(self, pin: Union[int, str]) -> int:
         """Read input value from pin."""
+        (pin,) = self._normalize_pins(pin)
         if pin not in self._pins:
             raise RuntimeError(f"Pin {pin} not set up")
 
@@ -224,10 +250,8 @@ class MockRPiGPIO:
         if pin is None:
             # Clean up all pins
             pins_to_clean = list(self._pins.keys())
-        elif isinstance(pin, int):
-            pins_to_clean = [pin]
         else:
-            pins_to_clean = pin
+            pins_to_clean = self._normalize_pins(pin)
 
         for p in pins_to_clean:
             if p in self._pins:

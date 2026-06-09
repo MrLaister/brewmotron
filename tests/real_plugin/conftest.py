@@ -19,6 +19,7 @@ from tests.fixtures.cbpi_mock import (
     MockCBPiSensorBase,
     MockProperty,
     PluginTestHarness,
+    mock_cbpi_parameters,
 )
 from tests.fixtures.hardware_mocks import (
     HardwareTestHarness,
@@ -39,10 +40,21 @@ _mock_cbpi_api.CBPiActor = MockCBPiActorBase
 _mock_cbpi_api.CBPiSensor = MockCBPiSensorBase
 _mock_cbpi_api.CBPiExtension = MockCBPiExtensionBase
 _mock_cbpi_api.Property = MockProperty
-_mock_cbpi_api.parameters = mock.MagicMock()
+# Pass-through decorator: a bare MagicMock here would replace decorated
+# plugin classes with mocks at import time
+_mock_cbpi_api.parameters = mock_cbpi_parameters
 _mock_cbpi_api.CBPiBase = mock.MagicMock()
 
+# Single shared GPIO mock: plugin modules bind `import RPi.GPIO as GPIO` at
+# first import and are cached in sys.modules, so every test must see the same
+# instance (reset per-test by the mock_rpi_gpio fixture)
+_mock_gpio = MockRPiGPIO()
+_mock_rpi = mock.MagicMock()
+_mock_rpi.GPIO = _mock_gpio
+
 # Install mocks globally
+sys.modules["RPi"] = _mock_rpi
+sys.modules["RPi.GPIO"] = _mock_gpio
 sys.modules["cbpi"] = mock.MagicMock()
 sys.modules["cbpi.api"] = _mock_cbpi_api
 sys.modules["cbpi.api.config"] = mock.MagicMock()
@@ -74,38 +86,32 @@ def get_plugin_path(plugin_name: str) -> Path:
     """
     repo_root = Path(__file__).parent.parent.parent
 
-    # Convert CamelCase plugin name to underscore format
-    # 7SegDisplay -> 7seg_display
-    # GPIOInput -> gpio_input
-    plugin_dir_name = plugin_name.replace("Seg", "seg_")
-    plugin_dir_name = plugin_dir_name.replace("GPIO", "gpio_")
-    plugin_dir_name = plugin_dir_name.replace("BMT-", "bmt_")
-    plugin_dir_name = plugin_dir_name.replace("LCD", "lcd_")
-    plugin_dir_name = plugin_dir_name.replace("NOR", "nor")
-    plugin_dir_name = plugin_dir_name.replace("i2c", "i2c_")
-    plugin_dir_name = plugin_dir_name.replace("Internet", "internet_")
-    plugin_dir_name = plugin_dir_name.replace("Connected", "connected_")
-    plugin_dir_name = plugin_dir_name.replace("One", "one_")
-    plugin_dir_name = plugin_dir_name.replace("At", "at_")
-    plugin_dir_name = plugin_dir_name.replace("A", "a_")
-    plugin_dir_name = plugin_dir_name.replace("Time", "time")
-    plugin_dir_name = plugin_dir_name.replace("Always", "always_")
-    plugin_dir_name = plugin_dir_name.replace("ON", "on_")
-    plugin_dir_name = plugin_dir_name.replace("Key", "key")
-    plugin_dir_name = plugin_dir_name.replace("Momentary", "momentary_")
-    plugin_dir_name = plugin_dir_name.replace("Buttons", "buttons")
-    plugin_dir_name = plugin_dir_name.replace("Temp", "temp_")
-    plugin_dir_name = plugin_dir_name.replace("Sensor", "sensor")
-    plugin_dir_name = plugin_dir_name.replace("Display", "display")
-    plugin_dir_name = plugin_dir_name.replace("Input", "input")
-    plugin_dir_name = plugin_dir_name.lower()
+    # Map legacy CamelCase plugin names to migrated directory names
+    plugin_dir_names = {
+        "7SegDisplay": "cbpi4_7seg_display",
+        "LCDisplay": "cbpi4_lcd_display",
+        "i2cTempSensor": "cbpi4_i2c_temp_sensor",
+        "GPIOInput": "cbpi4_gpio_input",
+        "AlwaysONGPIO": "cbpi4_always_on_gpio",
+        "BMT-Key": "cbpi4_bmt_key",
+        "BMT-MomentaryButtons": "cbpi4_bmt_momentary_buttons",
+        "InternetConnectedGPIO": "cbpi4_internet_connected_gpio",
+        "OneAtATime": "cbpi4_one_at_a_time",
+        "NOR3": "cbpi4_nor3",
+    }
 
-    plugin_dir = repo_root / f"cbpi4_{plugin_dir_name}"
+    if plugin_name not in plugin_dir_names:
+        raise FileNotFoundError(
+            f"Unknown plugin name: {plugin_name}\n"
+            f"Known plugins: {', '.join(sorted(plugin_dir_names))}"
+        )
+
+    plugin_dir = repo_root / plugin_dir_names[plugin_name]
 
     if not plugin_dir.exists():
         raise FileNotFoundError(
             f"Plugin source not found: {plugin_dir}\n"
-            f"Expected structure: cbpi4_{plugin_dir_name}/__init__.py"
+            f"Expected structure: {plugin_dir.name}/__init__.py"
         )
 
     return plugin_dir
@@ -136,8 +142,13 @@ def mock_rpi_gpio():
     Automatically mock RPi.GPIO for all real plugin tests.
 
     This prevents tests from trying to access actual GPIO pins.
+
+    Reuses the module-level _mock_gpio singleton (plugin modules hold a
+    reference to it from import time) and resets its state between tests.
     """
-    mock_gpio = MockRPiGPIO()
+    mock_gpio = _mock_gpio
+    mock_gpio.cleanup()
+    mock_gpio._mode = None
 
     # Mock cbpi.api module which plugins import
     from tests.fixtures.cbpi_mock import MockCBPi, MockCBPiActorBase, MockCBPiExtensionBase, MockCBPiSensorBase, MockProperty
@@ -148,13 +159,13 @@ def mock_rpi_gpio():
     mock_cbpi_api.CBPiSensor = MockCBPiSensorBase
     mock_cbpi_api.CBPiExtension = MockCBPiExtensionBase
     mock_cbpi_api.Property = MockProperty
-    mock_cbpi_api.parameters = mock.MagicMock()
+    mock_cbpi_api.parameters = mock_cbpi_parameters
     mock_cbpi_api.CBPiBase = mock.MagicMock()
 
     with mock.patch.dict(
         "sys.modules",
         {
-            "RPi": mock.MagicMock(),
+            "RPi": _mock_rpi,
             "RPi.GPIO": mock_gpio,
             "cbpi": mock.MagicMock(),
             "cbpi.api": mock_cbpi_api,

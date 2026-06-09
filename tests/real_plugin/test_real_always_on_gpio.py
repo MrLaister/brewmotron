@@ -22,9 +22,10 @@ def real_always_on_gpio_class(plugin_loader):
     """
     Load the REAL AlwaysONGPIO plugin class.
 
-    This imports the actual production code from cbpi4-AlwaysONGPIO.
+    This imports the actual production code from cbpi4_always_on_gpio.
+    The actor class in that plugin is named GPIOAON.
     """
-    return plugin_loader("AlwaysONGPIO", "AlwaysONGPIO")
+    return plugin_loader("AlwaysONGPIO", "GPIOAON")
 
 
 class TestRealAlwaysONGPIO:
@@ -105,13 +106,13 @@ class TestRealAlwaysONGPIO:
         assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH
 
     @pytest.mark.asyncio
-    async def test_inverted_logic_output(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
+    async def test_inverted_property_is_ignored(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
-        Test GPIO output with inverted logic.
+        Test that an Inverted property has no effect.
 
-        Expected behavior:
-        - When plugin starts with inverted=Yes, GPIO should be set LOW
-        - This is useful for active-low relay boards
+        GPIOAON does not support inverted logic - its only parameter is
+        GPIO and it always drives the pin high. This documents that an
+        Inverted property is silently ignored.
         """
         config = {
             "GPIO": "22",
@@ -123,17 +124,17 @@ class TestRealAlwaysONGPIO:
         # Give plugin time to set GPIO
         await asyncio.sleep(0.1)
 
-        # Verify GPIO is set LOW (inverted logic for "always on")
-        assert mock_rpi_gpio._pin_states.get(22) == mock_rpi_gpio.LOW
+        # Pin is HIGH regardless of the Inverted property
+        assert mock_rpi_gpio._pin_states.get(22) == mock_rpi_gpio.HIGH
 
     @pytest.mark.asyncio
-    async def test_plugin_cleanup(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
+    async def test_plugin_stop_keeps_pin_high(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
         """
-        Test that plugin properly cleans up GPIO on stop.
+        Test pin behavior when the plugin stops.
 
-        Expected behavior:
-        - When plugin stops, GPIO should be set to safe state (LOW for normal)
-        - Resources should be released
+        GPIOAON is deliberately "always on": it never drives the pin low,
+        not even on stop (it powers components that must stay on, e.g.
+        displays). This documents that the pin stays HIGH after on_stop.
         """
         config = {
             "GPIO": "23",
@@ -151,8 +152,8 @@ class TestRealAlwaysONGPIO:
         if hasattr(plugin, "on_stop"):
             await plugin.on_stop()
 
-        # GPIO should be set to safe state (LOW)
-        assert mock_rpi_gpio._pin_states.get(23) == mock_rpi_gpio.LOW
+        # The pin remains HIGH - the plugin never turns it off
+        assert mock_rpi_gpio._pin_states.get(23) == mock_rpi_gpio.HIGH
 
     @pytest.mark.asyncio
     async def test_multiple_instances_different_pins(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
@@ -170,9 +171,9 @@ class TestRealAlwaysONGPIO:
 
         await asyncio.sleep(0.1)
 
-        # Both should be configured independently
-        assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH  # Normal
-        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.LOW  # Inverted
+        # Both pins are driven HIGH independently (Inverted is ignored)
+        assert mock_rpi_gpio._pin_states.get(18) == mock_rpi_gpio.HIGH
+        assert mock_rpi_gpio._pin_states.get(19) == mock_rpi_gpio.HIGH
 
     @pytest.mark.asyncio
     async def test_invalid_gpio_handling(self, plugin_harness, real_always_on_gpio_class):
@@ -209,20 +210,19 @@ class TestRealAlwaysONGPIOEdgeCases:
 
     @pytest.mark.asyncio
     async def test_missing_gpio_parameter(self, plugin_harness, real_always_on_gpio_class):
-        """Test behavior when GPIO parameter is missing."""
+        """
+        Test behavior when GPIO parameter is missing.
+
+        Documents actual behavior: GPIOAON passes the missing (None) pin
+        straight to GPIO.setup() during on_start, which raises.
+        """
         config = {
             "Inverted": "No",
             # GPIO missing!
         }
 
-        # Document actual behavior with missing required parameter
-        try:
-            plugin = await plugin_harness.load_plugin(real_always_on_gpio_class, "test_missing_gpio", config)
-            # If it loads, check what default it uses
-            await asyncio.sleep(0.1)
-        except (KeyError, ValueError) as e:
-            # Plugin correctly rejects missing parameter
-            pass
+        with pytest.raises((TypeError, ValueError, RuntimeError)):
+            await plugin_harness.load_plugin(real_always_on_gpio_class, "test_missing_gpio", config)
 
     @pytest.mark.asyncio
     async def test_rapid_start_stop_cycles(self, plugin_harness, real_always_on_gpio_class, mock_rpi_gpio):
@@ -244,5 +244,5 @@ class TestRealAlwaysONGPIOEdgeCases:
 
             await asyncio.sleep(0.05)
 
-        # After all cycles, GPIO should be in safe state
-        assert mock_rpi_gpio._pin_states.get(24) == mock_rpi_gpio.LOW
+        # The pin stays HIGH - GPIOAON never drives it low, even on stop
+        assert mock_rpi_gpio._pin_states.get(24) == mock_rpi_gpio.HIGH

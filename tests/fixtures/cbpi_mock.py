@@ -101,6 +101,10 @@ class MockCBPiActor:
         """Set actor power level."""
         logger.debug(f"Actor {actor_id} power set to {power}%")
 
+    async def actor_update(self, actor_id: str, power: int) -> None:
+        """Push an actor update to the UI (state change only for tests)."""
+        logger.debug(f"Actor {actor_id} update (power: {power})")
+
     async def get_actor(self, actor_id: str) -> Optional[Dict]:
         """Get actor configuration."""
         return self._actors.get(actor_id)
